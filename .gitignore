@@ -1,0 +1,24 @@
+# Node
+node_modules/
+**/node_modules/
+
+# Build outputs
+**/.next/
+**/dist/
+**/build/
+**/.turbo/
+
+# Logs
+**/*.log
+**/logs/
+
+# Env files
+**/.env
+**/.env.*
+
+# VSCode
+.vscode/
+
+# System
+.DS_Store
+Thumbs.db
