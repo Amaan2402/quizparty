@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import { Request, Response } from "express";
 import { CustomError } from "../utils/CustomError";
 
-const resend = new Resend(process.env.RENDER_MAILAPI_API_KEY!);
+const resend = new Resend(process.env.RESEND_MAILAPI_API_KEY);
 
 export const sendEmail = async (req: Request, res: Response) => {
   const { data, error } = await resend.emails.send({

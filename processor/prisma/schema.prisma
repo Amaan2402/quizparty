@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String        @id @default(uuid())
+  name             String
+  email            String        @unique
+  password         String
+  mailVerified     Boolean       @default(false)
+  quizParticipated Participant[]
+  questionsCreated Question[]
+  quizCreated      Quiz[]
+}
+
+model Participant {
+  id       String             @id @default(uuid())
+  userId   String
+  quizId   String
+  joinedAt DateTime           @default(now())
+  answers  Answer[]
+  quiz     Quiz               @relation(fields: [quizId], references: [id])
+  user     User               @relation(fields: [userId], references: [id])
+  result   ParticipantResult?
+
+  @@unique([userId, quizId])
+}
+
+model Quiz {
+  id                   String              @id @default(uuid())
+  creatorId            String
+  title                String
+  description          String?
+  status               QuizStatus          @default(CREATED)
+  reward               Json
+  currentQuestionIndex Int
+  timePerQuestion      Int
+  createdAt            DateTime            @default(now())
+  participants         Participant[]
+  participantResults   ParticipantResult[]
+  questions            Question[]
+  creator              User                @relation(fields: [creatorId], references: [id])
+  QuizResultQueue      QuizResultQueue[]
+}
+
+model Question {
+  id            String   @id @default(uuid())
+  questionText  String
+  questionIndex Int
+  options       Json
+  quizId        String
+  creatorId     String
+  correctOption Int
+  answers       Answer[]
+  creator       User     @relation(fields: [creatorId], references: [id])
+  quiz          Quiz     @relation(fields: [quizId], references: [id])
+
+  @@unique([quizId, questionIndex])
+  @@unique([quizId, questionText])
+}
+
+model Answer {
+  id              String        @id @default(uuid())
+  participantId   String
+  questionId      String
+  isAnswerCorrect Boolean?
+  createdAt       DateTime      @default(now())
+  selectedOption  Int
+  participant     Participant   @relation(fields: [participantId], references: [id])
+  question        Question      @relation(fields: [questionId], references: [id])
+  answerOutbox    AnswerOutbox?
+
+  @@unique([participantId, questionId]) // to ensure a participant can only answer a question once
+}
+
+model ParticipantResult {
+  id            String      @id @default(uuid())
+  participantId String      @unique
+  quizId        String
+  score         Int
+  rank          Int
+  createdAt     DateTime    @default(now())
+  participant   Participant @relation(fields: [participantId], references: [id])
+  quiz          Quiz        @relation(fields: [quizId], references: [id])
+
+  @@unique([participantId, quizId])
+}
+
+model QuizResultQueue {
+  id         String                 @id @default(uuid())
+  quizId     String
+  quiz       Quiz                   @relation(fields: [quizId], references: [id])
+  quizResult QuizResultQueueOutbox?
+}
+
+model AnswerOutbox {
+  id       String @id @default(uuid())
+  answerId String @unique
+  answer   Answer @relation(fields: [answerId], references: [id])
+}
+
+model QuizResultQueueOutbox {
+  id                String          @id @default(uuid())
+  quizResultQueueId String          @unique
+  quizResultQueue   QuizResultQueue @relation(fields: [quizResultQueueId], references: [id])
+}
+
+enum QuizStatus {
+  CREATED
+  ONGOING
+  COMPLETED
+}

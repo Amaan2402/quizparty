@@ -57,27 +57,34 @@ const startQuizFlow = async (quizId: string) => {
 
     const questionInterval = setInterval(async () => {
       if (quizRoom.currentQuestionIndex === quizRoom.questions.length) {
-        await prisma.quiz.update({
-          data: {
-            status: "COMPLETED",
-          },
-          where: {
-            id: quizId,
-          },
-        });
-
+        console.log("All questions have been asked. Ending quiz.");
+        // await prisma.quiz.update({
+        //   data: {
+        //     status: "COMPLETED",
+        //   },
+        //   where: {
+        //     id: quizId,
+        //   },
+        // });
+        console.log("Quiz status updated to COMPLETED");
+        console.log("Creating quiz result queue TRANSACTION");
         await prisma.$transaction(async (tx) => {
+          console.log("Creating quiz result queue in transaction - 1");
           const resultQueue = await tx.quizResultQueue.create({
             data: {
               quizId,
             },
           });
 
-          await prisma.quizResultQueueOutbox.create({
+          console.log("Result queue created:", resultQueue.id);
+
+          const outbox = await tx.quizResultQueueOutbox.create({
             data: {
               quizResultQueueId: resultQueue.id,
             },
           });
+
+          console.log("Outbox created:", outbox.id);
         });
 
         clearInterval(questionInterval);
@@ -92,7 +99,7 @@ const startQuizFlow = async (quizId: string) => {
       );
       const currentQuestion = quizRoom.questions[quizRoom.currentQuestionIndex];
       console.log(
-        `Current question: ${currentQuestion.questionText}, Index: ${quizRoom.currentQuestionIndex + 1}`
+        `Current question: ${currentQuestion.questionText}, Index: ${quizRoom.currentQuestionIndex}`
       );
 
       io.to(quizId).emit("new-question", {
@@ -185,7 +192,7 @@ export const updateQuizDbToStart = async ({
         id: quizId,
       },
       data: {
-        status: "ONGOING",
+        status: "CREATED",
       },
     });
     const io = getIo();
