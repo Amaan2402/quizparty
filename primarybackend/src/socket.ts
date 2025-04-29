@@ -1,5 +1,9 @@
 import { Server } from "socket.io";
 import { CustomError } from "./utils/CustomError";
+import {
+  toggleUserConnectionStatus,
+  toggleUserDisconnectionStatus,
+} from "./utils/userConnection";
 
 type ParticipantSocketsMap = {
   socketId: string;
@@ -26,14 +30,9 @@ function initialiseSocket(server: any) {
     });
 
     io.on("connection", (socket) => {
-      console.log("A user connected⚡", socket.id);
-
       socket.on("join-room", (data) => {
-        console.log("DATA");
-        console.log(data.participantId, data.quizId);
         const { participantId, quizId } = data;
         socket.join(quizId);
-        console.log("User joined room:", quizId, socket.id);
 
         const existingSocket = participantSocketsMap.find(
           (s: ParticipantSocketsMap) =>
@@ -60,6 +59,8 @@ function initialiseSocket(server: any) {
           message: `A new participant has joined room: ${quizId}`,
           participantId: socket.data.participantId,
         });
+
+        toggleUserConnectionStatus(participantId);
       });
 
       socket.on("start-quiz", (data) => {
@@ -88,6 +89,8 @@ function initialiseSocket(server: any) {
                 socket.quizId === foundSocket.quizId
             ),
           });
+
+          toggleUserDisconnectionStatus(foundSocket.participantId);
         }
       });
     });

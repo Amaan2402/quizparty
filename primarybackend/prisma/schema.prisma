@@ -37,6 +37,7 @@ model Participant {
   userId    String
   quizId    String
   joinedAt DateTime @default(now())
+  isConnected Boolean @default(false)
 
   answers Answer[]
   result ParticipantResult?

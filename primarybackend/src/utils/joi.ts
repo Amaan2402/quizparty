@@ -129,3 +129,7 @@ export const aIQuestionGenerationSchema = Joi.object({
     "string.empty": `"quizDescription" cannot be an empty field`,
   }),
 })
+
+export const answerSchema = Joi.object({
+  
+})

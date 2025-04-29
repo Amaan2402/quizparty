@@ -19,14 +19,15 @@ model User {
 }
 
 model Participant {
-  id       String             @id @default(uuid())
-  userId   String
-  quizId   String
-  joinedAt DateTime           @default(now())
-  answers  Answer[]
-  quiz     Quiz               @relation(fields: [quizId], references: [id])
-  user     User               @relation(fields: [userId], references: [id])
-  result   ParticipantResult?
+  id          String             @id @default(uuid())
+  userId      String
+  quizId      String
+  joinedAt    DateTime           @default(now())
+  isConnected Boolean         @default(false)
+  answers     Answer[]
+  quiz        Quiz               @relation(fields: [quizId], references: [id])
+  user        User               @relation(fields: [userId], references: [id])
+  result      ParticipantResult?
 
   @@unique([userId, quizId])
 }

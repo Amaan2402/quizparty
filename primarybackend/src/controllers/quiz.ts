@@ -3,9 +3,11 @@ import {
   createQuestionDb,
   createQuizDb,
   generateQuizQuestionAiDb,
+  getQuizResultsDb,
   joinQuizdb,
   updateQuizDbToStart,
 } from "../helperfunctions/quiz";
+import { getUser } from "../utils/getUser";
 import {
   aIQuestionGenerationSchema,
   QuestionSchema,
@@ -19,7 +21,7 @@ export const createQuiz = async (req: Request, res: Response) => {
     return res.status(400).json({ message: error.details[0].message });
   }
 
-  const quiz = await createQuizDb({ ...req.body, reqUser: req.user?.userId });
+  const quiz = await createQuizDb({ ...req.body, user: req.user?.userId });
   return res
     .status(201)
     .json({ message: "Quiz created successfully", data: quiz });
@@ -27,13 +29,13 @@ export const createQuiz = async (req: Request, res: Response) => {
 
 export const startQuiz = async (req: Request, res: Response) => {
   const { quizId } = req.params;
-  const reqUser = req?.user?.userId || "";
-
-  if (!reqUser) {
-    return res.status(401).json({ message: "Unauthorized" });
+  if (!quizId) {
+    return res.status(400).json({ message: "Quiz ID is required" });
   }
 
-  const updateQuiz = await updateQuizDbToStart({ quizId, reqUser });
+  const user = getUser(req);
+
+  const updateQuiz = await updateQuizDbToStart({ quizId, user });
   return res
     .status(200)
     .json({ message: "Quiz started successfully", data: updateQuiz });
@@ -41,15 +43,16 @@ export const startQuiz = async (req: Request, res: Response) => {
 
 export const createQuizQuestion = async (req: Request, res: Response) => {
   const { error } = QuestionSchema.validate(req.body);
-  console.log(req.body);
   if (error) {
     console.log("Validation error", error);
     return res.status(400).json({ message: error.details[0].message });
   }
 
+  const user = getUser(req);
+
   const question = await createQuestionDb({
     ...req.body,
-    reqUser: req.user?.userId,
+    user,
   });
   return res
     .status(201)
@@ -63,10 +66,11 @@ export const generateQuizQuestionAi = async (req: Request, res: Response) => {
   }
   const { quizId, creatorId, questionCount, quizTopic, quizDescription } =
     req.body;
+  const user = getUser(req);
   const questions = await generateQuizQuestionAiDb({
     quizId,
     creatorId,
-    reqUser: req?.user?.userId || "",
+    user,
     questionCount,
     quizTopic,
     quizDescription,
@@ -79,11 +83,15 @@ export const generateQuizQuestionAi = async (req: Request, res: Response) => {
 
 export const joinQuiz = async (req: Request, res: Response) => {
   const { quizId } = req.params;
-  const reqUser = req?.user?.userId || "";
+  const user = getUser(req);
+
+  if (!quizId) {
+    return res.status(400).json({ message: "Quiz ID is required" });
+  }
 
   const { participant, reconnected } = await joinQuizdb({
     quizId,
-    reqUser,
+    user,
   });
   return res.status(200).json({
     message: "JOINED_SUCCESSFULLY",
@@ -95,21 +103,38 @@ export const joinQuiz = async (req: Request, res: Response) => {
 
 export const submitAnswer = async (req: Request, res: Response) => {
   const questionId = req.params.questionId;
-  const { participantId, selectedOption } = req.body;
-  const reqUser = req?.user?.userId || "";
+  const { selectedOption } = req.body;
+  const user = getUser(req);
 
-  if (!reqUser) {
-    return res.status(401).json({ message: "Unauthorized" });
+  if (!questionId || typeof questionId !== "string") {
+    return res
+      .status(400)
+      .json({ message: "Question ID is required and must be a string" });
+  }
+
+  if (!selectedOption || typeof selectedOption !== "number") {
+    return res.status(400).json({ message: "Selected option is required" });
   }
 
   await createAnswerDb({
     questionId,
-    participantId,
     selectedOption,
-    reqUser,
+    user,
   });
 
   return res.status(200).json({
     message: "Answer submitted successfully",
   });
+};
+
+export const shortPollResults = async (req: Request, res: Response) => {
+  const { quizId } = req.params;
+  const user = getUser(req);
+
+  if (!quizId) {
+    return res.status(400).json({ message: "Quiz ID is required" });
+  }
+
+  const results = await getQuizResultsDb({ quizId, user });
+  return res.status(200).json(results);
 };

@@ -5,6 +5,7 @@ import {
   createQuizQuestion,
   generateQuizQuestionAi,
   joinQuiz,
+  shortPollResults,
   startQuiz,
   submitAnswer,
 } from "../controllers/quiz";
@@ -16,5 +17,7 @@ router.post("/question", wrapAsync(createQuizQuestion));
 router.get("/question/ai", wrapAsync(generateQuizQuestionAi));
 router.post("/join/:quizId", wrapAsync(joinQuiz));
 router.post("/answer/:questionId/", wrapAsync(submitAnswer));
+
+router.get("/:quizId/result-status", wrapAsync(shortPollResults));
 
 export default router;
