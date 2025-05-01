@@ -12,7 +12,7 @@ export default function RootLayout({
       <AuthHeader />
       <div className="lg:mx-72 mt-12 flex justify-between items-center">
         <div>{children}</div>
-        <PersonImage />
+        <PersonImage src="https://nyc.cloud.appwrite.io/v1/storage/buckets/681203a2000746e35401/files/681205a20008a3daa3d3/view?project=6809910a000e66c57d35&mode=admin"  />
       </div>
       <AuthFooter />
     </div>
