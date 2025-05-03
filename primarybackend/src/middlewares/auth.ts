@@ -19,13 +19,10 @@ export const authMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  console.log("Auth middleware triggered", req.path);
-  // console.log("Auth middleware triggered", req.headers);
-  const paths = ["/api/auth/login", "/api/auth/register", "/socket.io/"];
+  const paths = ["/api/auth/login", "/api/auth/register", "/socket.io"];
   if (paths.includes(req.path)) {
     return next();
   }
-
   const token =
     req.headers["authorization"]?.split(" ")[1] || req.cookies?.token;
   if (!token) {

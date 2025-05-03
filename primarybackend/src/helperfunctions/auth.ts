@@ -115,3 +115,30 @@ export const loginUserDb = async ({
     throw new CustomError("User login failed", 500);
   }
 };
+
+export const getUserById = async (userId: string) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        email: true,
+        name: true,
+        id: true,
+      },
+    });
+
+    if (!user) {
+      throw new CustomError("User not found", 404);
+    }
+
+    return user;
+  } catch (err) {
+    console.log(err, "Error in getUserById function");
+    if (err instanceof CustomError) {
+      throw err;
+    }
+    throw new CustomError("User retrieval failed", 500);
+  }
+};

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { loginSchema, registerSchema } from "../utils/joi";
-import { createUser, loginUserDb } from "../helperfunctions/auth";
+import { createUser, getUserById, loginUserDb } from "../helperfunctions/auth";
 
 //ts types
 interface RegisterRequestBody {
@@ -13,8 +13,9 @@ export const registerUser = async (req: Request, res: Response) => {
   const { error } = registerSchema.validate(req.body);
   if (error) {
     return res.status(400).json({
-      message: "Validation error",
-      error: error.details[0].message,
+      message: error.details[0].message,
+      error: error.details[0],
+      type: "validation",
     });
   }
   const { name, email, password }: RegisterRequestBody = req.body;
@@ -31,23 +32,38 @@ export const loginUser = async (req: Request, res: Response) => {
   const { error } = loginSchema.validate(req.body);
   if (error) {
     return res.status(400).json({
-      message: "Validation error",
-      error: error.details[0].message,
+      message: error.details[0].message,
+      type: "validation",
     });
   }
+  console.log(req.cookies, "Cookies in loginUser");
   const { email, password }: { email: string; password: string } = req.body;
 
   const user = await loginUserDb({ email, password });
-
+  console.log("User data:", user);
   res.cookie("token", user.data.token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    secure: true, // allowed only if sameSite is not 'none'
+    sameSite: "none", // use 'lax' or 'strict' for local development
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   res.json({
     message: "Login successful",
     data: user.data,
+  });
+};
+
+export const getUser = async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+  if (!userId) {
+    return res.status(404).json({
+      message: "User not found",
+    });
+  }
+  const user = await getUserById(userId);
+  return res.json({
+    message: "User fetched successfully",
+    data: user,
   });
 };

@@ -1,5 +1,5 @@
 import express from "express";
-import { loginUser, registerUser } from "../controllers/auth";
+import { getUser, loginUser, registerUser } from "../controllers/auth";
 import { wrapAsync } from "../utils/wrapAsync";
 import { sendEmail } from "../controllers/resend";
 const router = express.Router();
@@ -14,6 +14,6 @@ router.delete("/logout", (req, res) => {
   });
   res.status(200).json({ message: "Logged out successfully" });
 });
-
+router.get("/me", wrapAsync(getUser));
 router.post("/send-email", wrapAsync(sendEmail));
 export default router;

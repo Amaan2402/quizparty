@@ -8,9 +8,12 @@ export const generateToken = ({
   email: string;
 }) => {
   if (process.env.JWT_SECRET) {
+    console.log("Generating token for user:", process.env.JWT_SECRET);
     const token = jwt.sign({ userId, email }, process.env.JWT_SECRET, {
       expiresIn: "7d",
+      algorithm: "HS256",
     });
+    console.log("Token generated:", token);
     return token;
   }
 
