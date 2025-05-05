@@ -121,27 +121,21 @@ export const createQuizDb = async ({
   description,
   reward,
   timePerQuestion,
-  user,
 }: {
   creatorId: string;
   title: string;
   description?: string;
-  reward: object;
+  reward?: object;
   timePerQuestion: number;
-  user: string;
 }) => {
   try {
-    if (user !== creatorId) {
-      throw new CustomError("You are not authorized to create this quiz", 403);
-    }
-
     const quiz = await prisma.quiz.create({
       data: {
         creatorId,
         title,
         description,
         reward: {
-          ...reward,
+          ...(reward || {}),
         },
         timePerQuestion,
         currentQuestionIndex: 0,
@@ -150,7 +144,58 @@ export const createQuizDb = async ({
     if (!quiz) throw new CustomError("Quiz creation failed", 500);
     return quiz;
   } catch (error) {
+    console.log("Error creating quiz:", error);
+    if (error instanceof CustomError) {
+      throw error;
+    }
+
     throw new CustomError("Failed to create quiz", 500);
+  }
+};
+
+export const getQuizDb = async ({
+  user,
+  quizId,
+}: {
+  user: string;
+  quizId: string;
+}) => {
+  try {
+    const quiz = await prisma.quiz.findUnique({
+      where: {
+        id: quizId,
+      },
+      select: {
+        title: true,
+        description: true,
+        creatorId: true,
+        status: true,
+        timePerQuestion: true,
+        createdAt: true,
+        maxParticipants: true,
+        questions: true,
+      },
+    });
+
+    if (!quiz) throw new CustomError("Quiz not found", 404);
+    if (quiz.creatorId !== user) {
+      throw new CustomError("You are not authorized to view this quiz", 403);
+    }
+
+    if (quiz.status !== "CREATED") {
+      throw new CustomError("Quiz is not started yet", 400);
+    }
+
+    if (quiz.creatorId !== user) {
+      throw new CustomError("You are not authorized to view this quiz", 403);
+    }
+
+    return quiz;
+  } catch (error) {
+    if (error instanceof CustomError) {
+      throw error;
+    }
+    throw new CustomError("Failed to fetch quiz", 500);
   }
 };
 
@@ -235,21 +280,12 @@ export const updateQuizDbToStart = async ({
 
 export const createQuestionDb = async ({
   questionText,
-  questionIndex,
   options,
   quizId,
   correctOption,
   user,
-  creatorId,
 }: Question & { user: string }) => {
   try {
-    if (user !== creatorId) {
-      throw new CustomError(
-        "You are not authorized to create this question",
-        403
-      );
-    }
-
     const quiz = await prisma.quiz.findUnique({
       where: {
         id: quizId,
@@ -264,17 +300,28 @@ export const createQuestionDb = async ({
       );
     }
 
+    const latestQuestion = await prisma.question.findFirst({
+      where: { quizId },
+      orderBy: { questionIndex: "desc" },
+    });
+
+    const newIndex = latestQuestion ? latestQuestion.questionIndex + 1 : 1;
+
+    if (newIndex === 10) {
+      throw new CustomError("Maximum number of questions reached", 400);
+    }
+
     const isQuestionIndexExists = await prisma.question.findUnique({
       where: {
         quizId_questionIndex: {
           quizId,
-          questionIndex,
+          questionIndex: newIndex,
         },
       },
     });
     if (isQuestionIndexExists) {
       throw new CustomError(
-        `Question index ${questionIndex} already exists in this quiz`,
+        `Question index ${newIndex} already exists in this quiz`,
         400
       );
     }
@@ -305,11 +352,11 @@ export const createQuestionDb = async ({
     const question = await prisma.question.create({
       data: {
         questionText,
-        questionIndex,
+        questionIndex: newIndex,
         options,
         quizId,
         correctOption,
-        creatorId,
+        creatorId: user,
       },
     });
 
@@ -333,6 +380,17 @@ export const generateQuizQuestionAiDb = async ({
   try {
     if (user !== creatorId) {
       throw new CustomError("You are not authorized to create this quiz", 403);
+    }
+
+    const latestQuestion = await prisma.question.findFirst({
+      where: { quizId },
+      orderBy: { questionIndex: "desc" },
+    });
+
+    const newIndex = latestQuestion ? latestQuestion.questionIndex + 1 : 1;
+
+    if (newIndex + questionCount > 10) {
+      throw new CustomError("Maximum number of questions reached", 400);
     }
 
     const completion = await openai.chat.completions.create({
@@ -403,7 +461,7 @@ export const generateQuizQuestionAiDb = async ({
 
     const result = JSON.parse(completion?.choices[0]?.message?.content);
     if (!Array.isArray(result)) {
-      throw new CustomError("Invalid response format", 500);
+      throw new CustomError("Failed to generate questions", 500);
     }
 
     const dataToInsert = result.map((question: Question) => {
@@ -424,6 +482,10 @@ export const generateQuizQuestionAiDb = async ({
 
     return questions;
   } catch (error) {
+    console.log("ERRRRRURR:::::", error);
+    if (error instanceof CustomError) {
+      throw error;
+    }
     throw new CustomError("Failed to generate quiz question", 500);
   }
 };
@@ -487,6 +549,7 @@ export const joinQuizdb = async ({
       };
     }
   } catch (error) {
+    console.log(error);
     if (error instanceof CustomError) {
       throw error;
     }

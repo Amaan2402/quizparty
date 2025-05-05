@@ -7,6 +7,8 @@ const router = express.Router();
 router.post("/register", wrapAsync(registerUser));
 router.post("/login", wrapAsync(loginUser));
 router.delete("/logout", (req, res) => {
+  console.log("Logout route hit");
+  console.log(req.cookies);
   res.clearCookie("token", {
     httpOnly: true,
     sameSite: "none",

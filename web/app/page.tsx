@@ -15,7 +15,7 @@ export default async function Home() {
     user = null;
   }
   return (
-    <div className="text-white">
+    <div className="text-white overflow-auto h-full">
       <Header user={user} />
       <Hero />
       <InfoCardSection />

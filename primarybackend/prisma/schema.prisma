@@ -38,6 +38,7 @@ model Participant {
   quizId    String
   joinedAt DateTime @default(now())
   isConnected Boolean @default(false)
+  
 
   answers Answer[]
   result ParticipantResult?
@@ -51,11 +52,12 @@ model Quiz {
   creatorId             String
   title                 String 
   description           String?
-  reward                Json
+  reward                Json?
   currentQuestionIndex  Int
   timePerQuestion       Int
   createdAt             DateTime @default(now())  
   status                QuizStatus @default(CREATED)
+  maxParticipants       Int @default(0)
 
   participants          Participant[]
   questions             Question[]
@@ -71,7 +73,7 @@ model Question {
   questionText    String
   questionIndex   Int
   options         Json
-  quizId          String
+  quizId          String  
   correctOption   Int
   creatorId       String
 

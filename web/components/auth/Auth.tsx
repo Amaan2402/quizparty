@@ -3,12 +3,15 @@
 import React, { useState } from "react";
 import { handleCreateUser, handleLoginUser } from "../../utils/auth";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 function Auth({ type }: { type: "LOGIN" | "REGISTER" }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [buttonDisabled, setButtonDisabled] = useState(false);
+
+  const router = useRouter();
 
   const handleUserSignUp = async () => {
     const res = handleCreateUser({ name, email, password });
@@ -30,6 +33,7 @@ function Auth({ type }: { type: "LOGIN" | "REGISTER" }) {
       loading: "Logging in...",
       success: (data) => {
         console.log("User logged in successfully", data);
+        router.push("/dashboard");
         return `User logged in successfully! ${data?.message}`;
       },
       error: (err) => {
@@ -47,8 +51,6 @@ function Auth({ type }: { type: "LOGIN" | "REGISTER" }) {
       await handleUserSignUp();
     }
   };
-
-  
 
   return (
     <div className="w-full max-w-[400px]">

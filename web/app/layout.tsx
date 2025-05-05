@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import CreateQuiz from "@/modals/CreateQuiz";
+import Provider from "@/context/Provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,10 +28,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#3d3da8]`}
+        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased bg-[#3d3da8]`}
       >
-        {children}
-        <Toaster />
+        <Provider>
+          {children}
+          <Toaster />
+          <CreateQuiz />
+        </Provider>
       </body>
     </html>
   );

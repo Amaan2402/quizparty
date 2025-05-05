@@ -3,6 +3,7 @@ import {
   createQuestionDb,
   createQuizDb,
   generateQuizQuestionAiDb,
+  getQuizDb,
   getQuizResultsDb,
   joinQuizdb,
   updateQuizDbToStart,
@@ -21,10 +22,26 @@ export const createQuiz = async (req: Request, res: Response) => {
     return res.status(400).json({ message: error.details[0].message });
   }
 
-  const quiz = await createQuizDb({ ...req.body, user: req.user?.userId });
+  const quiz = await createQuizDb({ ...req.body, creatorId: req.user?.userId });
   return res
     .status(201)
     .json({ message: "Quiz created successfully", data: quiz });
+};
+
+export const getQuiz = async (req: Request, res: Response) => {
+  const { quizId } = req.params;
+  const user = getUser(req);
+  if (!quizId) {
+    return res.status(400).json({
+      message: "Quiz ID is required",
+    });
+  }
+
+  const quiz = await getQuizDb({ quizId, user });
+  return res.status(200).json({
+    message: "Quiz fetched successfully",
+    data: quiz,
+  });
 };
 
 export const startQuiz = async (req: Request, res: Response) => {

@@ -32,6 +32,11 @@ export const handleLoginUser = async ({
   return res.data;
 };
 
+export const handleLogoutUser = async () => {
+  const res = await api.delete("/auth/logout");
+  return res.data;
+};
+
 export const getUser = async (token: string) => {
   try {
     const res = await api.get("/auth/me", {

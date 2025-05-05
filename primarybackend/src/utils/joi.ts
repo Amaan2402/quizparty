@@ -41,9 +41,6 @@ export const loginSchema = Joi.object({
 
 //quiz creation validation schema
 export const quizCreationSchema = Joi.object({
-  creatorId: Joi.string().required().messages({
-    "string.empty": `"creatorId" cannot be an empty field`,
-  }),
   title: Joi.string().required().messages({
     "string.empty": `"title" cannot be an empty field`,
     "string.max": `"title" should have a maximum length of {30}`,
@@ -52,7 +49,7 @@ export const quizCreationSchema = Joi.object({
     "string.empty": `"description" cannot be an empty field`,
     "string.max": `"description" should have a maximum length of {100}`,
   }),
-  reward: Joi.object().unknown(true).required().messages({
+  reward: Joi.object().unknown(true).optional().messages({
     "object.base": `"reward" should be a type of 'object'`,
     "object.empty": `"reward" cannot be an empty field`,
   }),
@@ -128,8 +125,6 @@ export const aIQuestionGenerationSchema = Joi.object({
   quizDescription: Joi.string().optional().messages({
     "string.empty": `"quizDescription" cannot be an empty field`,
   }),
-})
+});
 
-export const answerSchema = Joi.object({
-  
-})
+export const answerSchema = Joi.object({});
