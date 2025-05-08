@@ -1,12 +1,13 @@
+import { useModalStore } from "@/store/useModalStore";
+import { useQuestionStore } from "@/store/useQuestionsStore";
 import { deleteQuizQuestion } from "@/utils/quiz";
 import {
-  faCircleCheck,
   faGrip,
   faLayerGroup,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import toast from "react-hot-toast";
 
 type Question = {
@@ -48,6 +49,13 @@ function QuestionsList({
     });
   };
 
+  const { setQuestion } = useQuestionStore();
+  const { handleOpen } = useModalStore();
+
+  const handleOpenQuestionEditModal = (question: Question) => {
+    setQuestion(question);
+    handleOpen();
+  };
   return (
     <div
       className="bg-[#23256b] border-b-6 border-[#4549aa] w-full overflow-y-auto rounded-lg shadow-2xl hide-scrollbar"
@@ -64,30 +72,41 @@ function QuestionsList({
           <p className="font-medium">{questions.length}</p>
         </div>
       </div>
-      {questions.map(({ questionText, id }) => (
-        <div
-          key={id}
-          className="text-white m-4 bg-[#2d2d7f] mb-3 flex items-center rounded-md justify-between p-2 px-4"
-          // draggable="true"
-        >
-          <p>{questionText}</p>
+      {questions.map(
+        ({ questionText, id, options, correctOption, questionIndex }) => (
+          <div
+            key={id}
+            className="text-white m-4 bg-[#2d2d7f] mb-3 flex items-center rounded-md justify-between p-2 px-4"
+            // draggable="true"
+            onClick={() =>
+              handleOpenQuestionEditModal({
+                questionText,
+                id,
+                correctOption,
+                options,
+                questionIndex,
+              })
+            }
+          >
+            <p>{questionText}</p>
 
-          <div className="flex justify-between items-center gap-4">
-            <FontAwesomeIcon
-              icon={faGrip}
-              color="#9ea0e6"
-              className="cursor-pointer"
-            />
-            <button
-              className="cursor-pointer"
-              onClick={() => handleDeleteQuestion(id)}
-              disabled={isDeleteButtonDisabled}
-            >
-              <FontAwesomeIcon icon={faTrash} color="#9ea0e6" />
-            </button>
+            <div className="flex justify-between items-center gap-4">
+              <FontAwesomeIcon
+                icon={faGrip}
+                color="#9ea0e6"
+                className="cursor-pointer"
+              />
+              <button
+                className="cursor-pointer"
+                onClick={() => handleDeleteQuestion(id)}
+                disabled={isDeleteButtonDisabled}
+              >
+                <FontAwesomeIcon icon={faTrash} color="#9ea0e6" />
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      )}
     </div>
   );
 }

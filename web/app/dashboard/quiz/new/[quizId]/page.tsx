@@ -2,6 +2,7 @@
 import AddQuestions from "@/components/new-quiz/AddQuestions";
 import Header from "@/components/new-quiz/Header";
 import QuestionsList from "@/components/new-quiz/QuestionsList";
+import { useQuizStore } from "@/store/useQuizStore";
 import { getQuiz, getQuizQuestions } from "@/utils/quiz";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -12,21 +13,12 @@ import toast from "react-hot-toast";
 type Quiz = {
   title: string;
   description?: string;
-  creatorId: string;
-  status: string;
   timePerQuestion: number;
-  createdAt: string;
   maxParticipants: number;
-  questions: {
-    id: string;
-    questionText: string;
-    questionIndex: number;
-    options: {
-      index: number;
-      text: string;
-    }[];
-    correctOption: number;
-  }[];
+  reward?: {
+    brand: string;
+    voucherCode: string;
+  };
 };
 
 type Question = {
@@ -46,12 +38,19 @@ export default function Page() {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
   const [isQuizReady, setIsQuizReady] = useState(false);
+  const [questions, setQuestions] = useState<Question[]>([]);
 
   const toastIdRef = useRef<string | null>(null);
 
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const {
+    setQuizData,
+    title,
+    description,
+    reward,
+    timePerQuestion,
+    maxParticipants,
+  } = useQuizStore();
 
   const handleAddQuestionState = (questions: Question[]) => {
     setQuestions((prev) => [...prev, ...questions]);
@@ -63,6 +62,7 @@ export default function Page() {
     });
   };
 
+  // This effect handles the toast notification for quiz readiness
   useEffect(() => {
     if (isQuizReady) {
       toastIdRef.current = toast("You are ready to go live.", {
@@ -80,19 +80,28 @@ export default function Page() {
     }
   }, [isQuizReady]);
 
+  // This effect checks if the quiz is ready
   useEffect(() => {
-    if (questions.length > 0) {
-      setIsQuizReady(true);
-    } else {
-      setIsQuizReady(false);
+    if (quiz?.maxParticipants && quiz?.timePerQuestion) {
+      if (
+        questions.length > 0 &&
+        quiz?.maxParticipants > 0 &&
+        quiz?.timePerQuestion > 0
+      ) {
+        setIsQuizReady(true);
+      } else {
+        setIsQuizReady(false);
+      }
     }
-  }, [questions]);
+  }, [questions, quiz?.timePerQuestion, quiz?.maxParticipants, quiz?.title]);
 
+  // This effect fetches quiz questions when the quizId changes
   useEffect(() => {
     const fetchQuizQuestions = () => {
       toast.promise(getQuizQuestions(quizId), {
         loading: null,
         success: (data) => {
+          console.log("Quiz questions loaded successfully:", data.data);
           setQuestions((prev) => {
             return [...prev, ...data.data];
           });
@@ -112,12 +121,14 @@ export default function Page() {
     }
   }, [quizId]);
 
+  // This effect fetches the quiz data when the quizId changes
   useEffect(() => {
     if (quizId && typeof quizId === "string") {
       toast.promise(getQuiz(quizId), {
         loading: "Loading quiz...",
         success: (data) => {
-          setQuiz(data.data);
+          console.log("Quiz loaded successfully:", data.data);
+          setQuizData({ ...data.data });
           setLoading(false);
           return `Quiz loaded successfully!`;
         },
@@ -131,7 +142,18 @@ export default function Page() {
         },
       });
     }
-  }, [quizId]);
+  }, [quizId, setQuizData]);
+
+  useEffect(() => {
+    setQuiz({
+      title,
+      description,
+      reward,
+      timePerQuestion,
+      maxParticipants,
+    });
+  }, [title, description, reward, timePerQuestion, maxParticipants]);
+
   if (error) {
     return <div>Error: {error}</div>;
   }
@@ -144,7 +166,6 @@ export default function Page() {
     <div className="px-12 mt-2">
       <Header
         title={quiz.title}
-        createdAt={quiz.createdAt}
         maxParticipants={quiz.maxParticipants}
         timePerQuestion={quiz.timePerQuestion}
       />

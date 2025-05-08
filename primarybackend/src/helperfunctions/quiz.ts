@@ -3,6 +3,8 @@ import { CustomError } from "../utils/CustomError";
 import { prisma } from "../utils/db";
 import { getIo } from "../socket";
 
+import { RewardBrands } from "@prisma/client";
+
 type option = {
   index: number;
   text: string;
@@ -121,12 +123,17 @@ export const createQuizDb = async ({
   description,
   reward,
   timePerQuestion,
+  maxParticipants,
 }: {
   creatorId: string;
   title: string;
   description?: string;
-  reward?: object;
+  reward?: {
+    brand: RewardBrands;
+    voucherCode: string;
+  };
   timePerQuestion: number;
+  maxParticipants: number;
 }) => {
   try {
     const quiz = await prisma.quiz.create({
@@ -134,14 +141,21 @@ export const createQuizDb = async ({
         creatorId,
         title,
         description,
-        reward: {
-          ...(reward || {}),
-        },
         timePerQuestion,
         currentQuestionIndex: 0,
+        maxParticipants,
       },
     });
-    if (!quiz) throw new CustomError("Quiz creation failed", 500);
+
+    if (reward && quiz) {
+      await prisma.reward.create({
+        data: {
+          quizId: quiz.id,
+          brand: reward.brand,
+          voucherCode: reward?.voucherCode,
+        },
+      });
+    }
     return quiz;
   } catch (error) {
     console.log("Error creating quiz:", error);
@@ -150,6 +164,121 @@ export const createQuizDb = async ({
     }
 
     throw new CustomError("Failed to create quiz", 500);
+  }
+};
+
+export const updateQuizDb = async ({
+  QuizFieldsToUpdate,
+  RewardFieldsToUpdate,
+  quizId,
+  user,
+}: {
+  QuizFieldsToUpdate: {
+    title?: string;
+    description?: string;
+    maxParticipants?: number;
+    timePerQuestion?: number;
+  };
+  RewardFieldsToUpdate?: {
+    brand: RewardBrands;
+    voucherCode: string;
+    reward: boolean;
+  };
+  quizId: string;
+  user: string;
+}) => {
+  try {
+    const quiz = await prisma.quiz.findUnique({
+      where: {
+        id: quizId,
+      },
+      include: {
+        reward: true,
+      },
+    });
+
+    if (!quiz) throw new CustomError("Quiz not found", 404);
+    if (quiz.creatorId !== user) {
+      throw new CustomError("You are not authorized to update this quiz", 403);
+    }
+
+    if (quiz.status !== "CREATED") {
+      throw new CustomError("Quiz is not in a valid state to update", 400);
+    }
+
+    if (Object.keys(QuizFieldsToUpdate).length > 0) {
+      await prisma.quiz.update({
+        where: {
+          id: quizId,
+        },
+        data: {
+          ...QuizFieldsToUpdate,
+        },
+      });
+    }
+
+    //create
+    if (!quiz.reward && RewardFieldsToUpdate?.reward) {
+      if (RewardFieldsToUpdate?.brand && RewardFieldsToUpdate?.voucherCode) {
+        await prisma.reward.create({
+          data: {
+            quizId,
+            brand: RewardFieldsToUpdate.brand,
+            voucherCode: RewardFieldsToUpdate.voucherCode,
+          },
+        });
+      } else {
+        throw new CustomError("Brand and voucher code are required", 400);
+      }
+    }
+    //update
+    else if (quiz.reward && RewardFieldsToUpdate?.reward) {
+      if (RewardFieldsToUpdate?.brand || RewardFieldsToUpdate?.voucherCode) {
+        const updatedRewardFields: {
+          brand?: RewardBrands;
+          voucherCode?: string;
+        } = {};
+
+        if (RewardFieldsToUpdate?.brand) {
+          updatedRewardFields.brand = RewardFieldsToUpdate.brand;
+        }
+        if (RewardFieldsToUpdate?.voucherCode) {
+          updatedRewardFields.voucherCode = RewardFieldsToUpdate?.voucherCode;
+        }
+
+        await prisma.reward.update({
+          where: {
+            quizId,
+          },
+          data: {
+            ...updatedRewardFields,
+          },
+        });
+      }
+    } else if (quiz.reward && !RewardFieldsToUpdate?.reward) {
+      await prisma.reward.delete({
+        where: {
+          quizId,
+        },
+      });
+    }
+
+    const quizDb = await prisma.quiz.findUnique({
+      where: {
+        id: quizId,
+      },
+      include: {
+        reward: true,
+      },
+    });
+
+    return quizDb;
+  } catch (error) {
+    console.log("Error updating quiz:", error);
+    if (error instanceof CustomError) {
+      throw error;
+    }
+    throw new CustomError("Failed to update quiz", 500);
   }
 };
 
@@ -166,14 +295,14 @@ export const getQuizDb = async ({
         id: quizId,
       },
       select: {
+        id: true,
         title: true,
         description: true,
         creatorId: true,
         status: true,
         timePerQuestion: true,
-        createdAt: true,
         maxParticipants: true,
-        questions: true,
+        reward: true,
       },
     });
 

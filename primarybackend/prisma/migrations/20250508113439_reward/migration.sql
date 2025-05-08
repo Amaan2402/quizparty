@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Reward" ALTER COLUMN "brand" DROP NOT NULL,
+ALTER COLUMN "voucherCode" DROP NOT NULL;

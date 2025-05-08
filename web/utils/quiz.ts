@@ -3,9 +3,10 @@ import { api } from "./axios";
 type CreateQuizProps = {
   title: string;
   description?: string;
+  maxParticipants: number;
   reward?: {
     brand: string;
-    couponCode: string;
+    voucherCode: string;
   };
   timePerQuestion: number;
 };
@@ -14,20 +15,63 @@ export const createQuiz = async ({
   title,
   description,
   reward,
+  maxParticipants,
   timePerQuestion,
 }: CreateQuizProps) => {
-  const data = {
+  const data: {
+    title: string;
+    description?: string;
+    maxParticipants: number;
+    timePerQuestion: number;
+    reward?: {
+      brand: string;
+      voucherCode: string;
+    };
+  } = {
     title,
-    description: description || "",
-    reward: reward || {},
     timePerQuestion,
+    maxParticipants,
   };
+
+  if (description) {
+    data.description = description;
+  }
+  if (reward) {
+    data.reward = reward;
+  }
   const quiz = await api.post("/quiz", data);
   return quiz.data;
 };
 
 export const getQuiz = async (quizId: string) => {
   const response = await api.get(`/quiz/${quizId}`);
+
+  return response.data;
+};
+
+export const editQuiz = async ({
+  QuizFieldsToUpdate,
+  RewardFieldsToUpdate,
+  quizId,
+}: {
+  QuizFieldsToUpdate: {
+    title?: string;
+    description?: string;
+    maxParticipants?: number;
+    timePerQuestion?: number;
+  };
+  RewardFieldsToUpdate?: {
+    brand?: string;
+    voucherCode?: string;
+    reward?: boolean;
+  };
+  quizId: string;
+}) => {
+  console.log("HELPER HERE WITH QUIZID", quizId);
+  const response = await api.patch(`/quiz/${quizId}`, {
+    QuizFieldsToUpdate,
+    RewardFieldsToUpdate,
+  });
 
   return response.data;
 };

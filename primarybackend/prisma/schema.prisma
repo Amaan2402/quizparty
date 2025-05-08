@@ -19,6 +19,15 @@ enum QuizStatus {
   COMPLETED
 }
 
+enum RewardBrands {
+  amazon
+  flipkart
+  swiggy
+  myntra
+  ajio
+  zomato
+}
+
 model User {
   id              String @id     @default(uuid())
   name            String
@@ -47,12 +56,21 @@ model Participant {
   @@unique([userId, quizId]) // Ensure a user can only participate in a quiz once
 }
 
+model Reward {
+  id              String @id @default(uuid())
+  quizId          String @unique
+  brand           RewardBrands
+  voucherCode            String
+
+  quiz Quiz @relation(fields: [quizId], references: [id])
+}
+
 model Quiz {
   id                    String @id @default(uuid())
   creatorId             String
   title                 String 
   description           String?
-  reward                Json?
+  reward                Reward?
   currentQuestionIndex  Int
   timePerQuestion       Int
   createdAt             DateTime @default(now())  

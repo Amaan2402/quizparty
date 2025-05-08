@@ -1,16 +1,16 @@
 "use client";
 
-import { useModalContext } from "@/context/modalContext";
+import { useModalStore } from "@/store/useModalStore";
 import React from "react";
 
 function ProfileSideBarButtons() {
-  const { handleOpen } = useModalContext();
+  const { handleOpen } = useModalStore();
 
   return (
     <div className="mt-6">
       <button
         className="w-full bg-[#1e4eff] cursor-pointer text-2xl py-2 font-medium rounded-lg text-white"
-        onClick={handleOpen}
+        onClick={() => handleOpen(false)}
       >
         Create Quiz
       </button>

@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
-import CreateQuiz from "@/modals/CreateQuiz";
-import Provider from "@/context/Provider";
+import QuizModal from "@/modals/QuizModal";
 import PageTransitionLoader from "@/components/PageProgressLoader";
 
 const geistSans = Geist({
@@ -32,12 +31,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#3d3da8] hide-scrollbar`}
       >
         <div style={{ height: "100vh", overflow: "hidden" }}>
-          <Provider>
-            {children}
-            <Toaster />
-            <PageTransitionLoader />
-            <CreateQuiz />
-          </Provider>
+          {children}
+          <Toaster />
+          <PageTransitionLoader />
+          <QuizModal />
         </div>
       </body>
     </html>

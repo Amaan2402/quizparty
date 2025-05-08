@@ -4,6 +4,7 @@ import {
   createQuiz,
   createQuizQuestion,
   deleteQuizQuestion,
+  editQuiz,
   generateQuizQuestionAi,
   getQuiz,
   getQuizQuestionsAll,
@@ -16,6 +17,7 @@ const router = express.Router();
 
 router.post("/", wrapAsync(createQuiz));
 router.get("/:quizId", wrapAsync(getQuiz));
+router.patch("/:quizId", wrapAsync(editQuiz));
 router.patch("/start/:quizId", wrapAsync(startQuiz));
 router.post("/question", wrapAsync(createQuizQuestion));
 router.delete("/question/:questionId", wrapAsync(deleteQuizQuestion));

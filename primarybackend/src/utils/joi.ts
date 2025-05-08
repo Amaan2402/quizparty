@@ -1,4 +1,12 @@
 import Joi from "joi";
+const rewardBrands = [
+  "amazon",
+  "flipkart",
+  "swiggy",
+  "myntra",
+  "ajio",
+  "zomato",
+];
 
 //user registration and login validation schema
 export const registerSchema = Joi.object({
@@ -46,13 +54,34 @@ export const quizCreationSchema = Joi.object({
     "string.max": `"title" should have a maximum length of {30}`,
   }),
   description: Joi.string().optional().messages({
-    "string.empty": `"description" cannot be an empty field`,
     "string.max": `"description" should have a maximum length of {100}`,
   }),
-  reward: Joi.object().unknown(true).optional().messages({
-    "object.base": `"reward" should be a type of 'object'`,
-    "object.empty": `"reward" cannot be an empty field`,
+  maxParticipants: Joi.number().integer().min(1).max(100).required().messages({
+    "number.base": `"maxParticipants" should be a type of 'number'`,
+    "number.empty": `"maxParticipants" cannot be an empty field`,
+    "number.integer": `"maxParticipants" should be an integer`,
+    "number.min": `"maxParticipants" should be a positive number`,
+    "number.max": `"maxParticipants" should be a max of 100`,
   }),
+  reward: Joi.object({
+    brand: Joi.string()
+      .valid(...rewardBrands)
+      .required()
+      .messages({
+        "string.base": `"brand" should be a type of 'text'`,
+        "string.empty": `"brand" cannot be an empty field`,
+        "any.only": `"brand" must be one of ${rewardBrands.join(", ")}`,
+      }),
+    voucherCode: Joi.string().required().messages({
+      "string.base": `"voucherCode" should be a type of 'text'`,
+      "string.empty": `"voucherCode" cannot be an empty field`,
+    }),
+  })
+    .optional()
+    .messages({
+      "object.base": `"reward" should be a type of 'object'`,
+      "object.empty": `"reward" cannot be an empty field`,
+    }),
   timePerQuestion: Joi.number().integer().min(1).max(60).required().messages({
     "number.base": `"timePerQuestion" should be a type of 'number'`,
     "number.empty": `"timePerQuestion" cannot be an empty field`,
@@ -61,6 +90,8 @@ export const quizCreationSchema = Joi.object({
     "number.max": `"timePerQuestion" should be a max of 60`,
   }),
 }).required();
+
+export const quizUpdateSchema = Joi.object;
 
 //quiz question creation schema
 export const QuestionSchema = Joi.object({
@@ -121,3 +152,77 @@ export const aIQuestionGenerationSchema = Joi.object({
 });
 
 export const answerSchema = Joi.object({});
+
+const RewardBrands = {
+  amazon: "amazon",
+  flipkart: "flipkart",
+  swiggy: "swiggy",
+  myntra: "myntra",
+  ajio: "ajio",
+  zomato: "zomato",
+};
+
+const quizFieldsSchema = Joi.object({
+  title: Joi.string().min(1).optional().messages({
+    "string.base": "Title must be a string.",
+    "string.empty": "Title cannot be empty if provided.",
+    "string.min": "Title cannot be empty if provided.",
+  }),
+  description: Joi.string().allow("").optional().messages({
+    "string.base": "Description must be a string.",
+  }),
+  maxParticipants: Joi.number().integer().positive().optional().messages({
+    "number.base": "Max participants must be a number.",
+    "number.integer": "Max participants must be an integer.",
+    "number.positive": "Max participants must be a positive number.",
+  }),
+  timePerQuestion: Joi.number().integer().positive().optional().messages({
+    "number.base": "Time per question must be a number.",
+    "number.integer": "Time per question must be an integer.",
+    "number.positive": "Time per question must be a positive number.",
+  }),
+})
+  .min(0) // Ensures that if QuizFieldsToUpdate is provided, it's not an empty object
+  .optional()
+  .messages({
+    "object.min":
+      "QuizFieldsToUpdate cannot be an empty object if provided. Please provide at least one field to update.",
+  });
+
+const rewardFieldsSchema = Joi.object({
+  reward: Joi.boolean().optional().messages({
+    // 'reward' is key. If RewardFieldsToUpdate is present, 'reward' must be there.
+    "any.required":
+      'The "reward" field (boolean) is required within RewardFieldsToUpdate.',
+    "boolean.base": 'The "reward" field must be a boolean.',
+  }),
+  brand: Joi.string()
+    .valid(...Object.values(RewardBrands))
+    .optional()
+    .messages({
+      "any.required": 'Brand is required when "reward" is true.',
+      "any.forbidden":
+        'Brand should not be provided when "reward" is false or RewardFieldsToUpdate is not enabling rewards.',
+      "string.base": "Brand must be a string.",
+      "any.only": `Brand must be one of the allowed values: ${Object.values(RewardBrands).join(", ")}.`,
+    }),
+  voucherCode: Joi.string().min(1).optional().messages({
+    "any.required": 'Voucher code is required when "reward" is true.',
+    "any.forbidden":
+      'Voucher code should not be provided when "reward" is false or RewardFieldsToUpdate is not enabling rewards.',
+    "string.base": "Voucher code must be a string.",
+    "string.empty": 'Voucher code cannot be empty if "reward" is true.',
+    "string.min": 'Voucher code cannot be empty if "reward" is true.',
+  }),
+}).optional(); // RewardFieldsToUpdate object itself is optional
+
+// Main schema for req.body
+export const updateQuizPayloadSchema = Joi.object({
+  QuizFieldsToUpdate: quizFieldsSchema,
+  RewardFieldsToUpdate: rewardFieldsSchema,
+})
+  .or("QuizFieldsToUpdate", "RewardFieldsToUpdate") // Ensures at least one of the update objects is present
+  .messages({
+    "object.missing":
+      "Request body must contain at least QuizFieldsToUpdate or RewardFieldsToUpdate.",
+  });

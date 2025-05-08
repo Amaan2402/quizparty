@@ -19,6 +19,7 @@ export const authMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
+  console.log("Auth middleware triggered", req.path);
   const paths = ["/api/auth/login", "/api/auth/register", "/socket.io"];
   if (paths.includes(req.path)) {
     return next();
