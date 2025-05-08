@@ -67,12 +67,6 @@ export const QuestionSchema = Joi.object({
   questionText: Joi.string().required().messages({
     "string.empty": `"questionText" cannot be an empty field`,
   }),
-  questionIndex: Joi.number().integer().min(0).required().messages({
-    "number.base": `"questionIndex" should be a type of 'number'`,
-  }),
-  creatorId: Joi.string().required().messages({
-    "string.empty": `"creatorId" cannot be an empty field`,
-  }),
   options: Joi.array()
     .items(
       Joi.object({
@@ -90,11 +84,13 @@ export const QuestionSchema = Joi.object({
           "object.empty": `"options" cannot be an empty field`,
         })
     )
+    .min(2)
     .required()
     .messages({
       "array.base": `"options" should be a type of 'array'`,
       "array.empty": `"options" cannot be an empty field`,
       "array.includesRequiredUnknowns": `"options" should contain at least one object`,
+      "array.min": `"options" should have atleast 2 options`,
     }),
   correctOption: Joi.number().integer().min(0).required().messages({
     "number.base": `"correctOptionIndex" should be a type of 'number'`,
@@ -109,16 +105,13 @@ export const aIQuestionGenerationSchema = Joi.object({
   quizId: Joi.string().required().messages({
     "string.empty": `"quizId" cannot be an empty field`,
   }),
-  creatorId: Joi.string().required().messages({
-    "string.empty": `"creatorId" cannot be an empty field`,
-  }),
-  questionCount: Joi.number().integer().min(1).max(10).required().messages({
-    "number.base": `"questionCount" should be a type of 'number'`,
-    "number.empty": `"questionCount" cannot be an empty field`,
-    "number.integer": `"questionCount" should be an integer`,
-    "number.min": `"questionCount" should be a positive number`,
-    "number.max": `"questionCount" should be a max of 10`,
-  }),
+  // questionCount: Joi.number().integer().min(1).max(10).required().messages({
+  //   "number.base": `"questionCount" should be a type of 'number'`,
+  //   "number.empty": `"questionCount" cannot be an empty field`,
+  //   "number.integer": `"questionCount" should be an integer`,
+  //   "number.min": `"questionCount" should be a positive number`,
+  //   "number.max": `"questionCount" should be a max of 10`,
+  // }),
   quizTopic: Joi.string().required().messages({
     "string.empty": `"quizTopic" cannot be an empty field`,
   }),

@@ -3,8 +3,10 @@ import { wrapAsync } from "../utils/wrapAsync";
 import {
   createQuiz,
   createQuizQuestion,
+  deleteQuizQuestion,
   generateQuizQuestionAi,
   getQuiz,
+  getQuizQuestionsAll,
   joinQuiz,
   shortPollResults,
   startQuiz,
@@ -16,7 +18,9 @@ router.post("/", wrapAsync(createQuiz));
 router.get("/:quizId", wrapAsync(getQuiz));
 router.patch("/start/:quizId", wrapAsync(startQuiz));
 router.post("/question", wrapAsync(createQuizQuestion));
-router.get("/question/ai", wrapAsync(generateQuizQuestionAi));
+router.delete("/question/:questionId", wrapAsync(deleteQuizQuestion));
+router.get("/question/:quizId/all", wrapAsync(getQuizQuestionsAll));
+router.post("/question/ai", wrapAsync(generateQuizQuestionAi));
 router.post("/join/:quizId", wrapAsync(joinQuiz));
 router.post("/answer/:questionId/", wrapAsync(submitAnswer));
 

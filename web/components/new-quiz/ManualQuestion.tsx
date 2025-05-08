@@ -1,15 +1,33 @@
-import { faBook } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
 import QuestionInput from "./QuestionInput";
 import toast from "react-hot-toast";
+import { createQuizQuestion } from "@/utils/quiz";
 
 type Options = {
   index: number;
   text: string;
 };
 
-function ManualQuestion() {
+type Question = {
+  id: string;
+  questionText: string;
+  questionIndex: number;
+  options: {
+    index: number;
+    text: string;
+  }[];
+  correctOption: number;
+};
+
+function ManualQuestion({
+  quizId,
+  handleAddQuestionState,
+}: {
+  quizId: string;
+  handleAddQuestionState: (question: Question) => void;
+}) {
   const [questionText, setQuestionText] = React.useState<string>("");
   const [optionsCount, setOptionsCount] = React.useState<number>(2);
   const [options, setOptions] = useState<Options[]>([
@@ -17,6 +35,7 @@ function ManualQuestion() {
     { index: 2, text: "" },
   ]);
 
+  const [isLoading, setIsLoading] = useState(false);
   const handleAddOption = () => {
     if (optionsCount < 4 && optionsCount >= 2) {
       setOptions((prev) => {
@@ -54,15 +73,51 @@ function ManualQuestion() {
   }) => {
     const newOptions = [...options];
     newOptions[idx - 1].text = text;
-    console.log(newOptions);
     setOptions(newOptions);
   };
 
-  const handleAddQuestion = () => {
-    console.log("Question: ", questionText);
-    console.log("Options: ", options);
+  const handleCreateQuestion = () => {
+    if (questionText.length < 10) {
+      toast.error("Question must be at least 10 characters long.");
+      return;
+    }
 
-    toast.success("Question added successfully!");
+    if (optionsCount < 2) {
+      toast.error("You must have at least 2 options.");
+      return;
+    }
+
+    if (optionsCount > 4) {
+      toast.error("You can only add up to 4 options.");
+      return;
+    }
+    setIsLoading(true);
+
+    toast.promise(
+      createQuizQuestion({ quizId, questionText, options, correctOption: 1 }),
+      {
+        loading: "Creating question...",
+        success: (data) => {
+          const question: Question = data.data as Question;
+          handleAddQuestionState([question]);
+          setQuestionText("");
+          setOptionsCount(2);
+          setOptions([
+            { index: 1, text: "" },
+            { index: 2, text: "" },
+          ]);
+          setIsLoading(false);
+          return `Question created successfully!`;
+        },
+        error: (error) => {
+          console.error("Error creating question:", error);
+          setIsLoading(false);
+          return `Error creating question: ${
+            error.response?.data?.message || "Something went wrong"
+          }`;
+        },
+      }
+    );
   };
 
   return (
@@ -75,11 +130,11 @@ function ManualQuestion() {
       <div className="flex flex-col gap-2 mt-3">
         <textarea
           className="resize-none bg-[#272971] outline-none border border-[#363881] px-3 py-[2px] rounded-md"
-          rows={4}
+          rows={3}
           placeholder="Question"
           value={questionText}
           onChange={(e) => setQuestionText(e.target.value)}
-          maxLength={60}
+          maxLength={120}
         ></textarea>
         {options.map((option, idx) => {
           return (
@@ -96,15 +151,26 @@ function ManualQuestion() {
           <button
             className="bg-[#2553fc] w-3/12 mb-2 px-2 py-[2px] font-medium rounded-md"
             onClick={handleAddOption}
+            disabled={isLoading}
           >
             Add option
           </button>
           <br />
           <button
-            className="bg-[#008000] w-4/12 px-2 py-[2px] font-medium rounded-md"
-            onClick={handleAddQuestion}
+            className={` w-4/12 px-2 py-[2px] font-medium rounded-md ${
+              isLoading ? "bg-[#439b43] cursor-not-allowed" : "bg-[#008000]"
+            }`}
+            onClick={handleCreateQuestion}
+            disabled={isLoading}
           >
-            Create Question
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                Creating Question
+                <FontAwesomeIcon icon={faSpinner} spin />
+              </span>
+            ) : (
+              "Create Question"
+            )}
           </button>
         </div>
       </div>

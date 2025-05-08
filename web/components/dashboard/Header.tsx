@@ -25,7 +25,7 @@ function Header() {
     });
   };
   return (
-    <div className="w-full">
+    <div className="w-full sticky top-0 bg-[#2e2c8d] z-30 p-4 shadow-sm">
       <div className="flex justify-end pr-4">
         <button
           className="text-white font-medium flex justify-center items-center bg-[#fc5639] text-xl rounded-lg px-4 mr-10 cursor-pointer hover:bg-red-500 transition duration-300 ease-in-out"

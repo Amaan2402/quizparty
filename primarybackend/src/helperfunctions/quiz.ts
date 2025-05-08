@@ -19,9 +19,9 @@ type Question = {
 
 type generateAiQuestion = {
   quizId: string;
-  creatorId: string;
+  // creatorId: string;
   user: string;
-  questionCount: number;
+  // questionCount: number;
   quizTopic: string;
   quizDescription: string;
 };
@@ -235,7 +235,7 @@ export const updateQuizDbToStart = async ({
         id: quizId,
       },
       data: {
-        status: "CREATED",
+        status: "ONGOING",
       },
     });
     const io = getIo();
@@ -300,6 +300,13 @@ export const createQuestionDb = async ({
       );
     }
 
+    if (quiz.status !== "CREATED") {
+      throw new CustomError(
+        "Quiz is not in a valid state to create questions",
+        400
+      );
+    }
+
     const latestQuestion = await prisma.question.findFirst({
       where: { quizId },
       orderBy: { questionIndex: "desc" },
@@ -307,7 +314,7 @@ export const createQuestionDb = async ({
 
     const newIndex = latestQuestion ? latestQuestion.questionIndex + 1 : 1;
 
-    if (newIndex === 10) {
+    if (newIndex === 11) {
       throw new CustomError("Maximum number of questions reached", 400);
     }
 
@@ -369,17 +376,139 @@ export const createQuestionDb = async ({
   }
 };
 
+export const deleteQuizQuestionDb = async ({
+  questionId,
+  user,
+}: {
+  questionId: string;
+  user: string;
+}) => {
+  try {
+    const question = await prisma.question.findUnique({
+      where: {
+        id: questionId,
+      },
+      include: {
+        quiz: true,
+      },
+    });
+
+    if (!question) throw new CustomError("Question not found", 404);
+    if (question.creatorId !== user) {
+      throw new CustomError(
+        "You are not authorized to delete this question",
+        403
+      );
+    }
+
+    if (question.quiz.status !== "CREATED") {
+      throw new CustomError(
+        "Quiz is not in a valid state to delete questions",
+        400
+      );
+    }
+
+    const questionIndex = question.questionIndex;
+    const quizId = question.quizId;
+
+    const totalQuestionsCount = await prisma.question.count({
+      where: {
+        quizId,
+      },
+    });
+
+    const questionDeleted = await prisma.question.delete({
+      where: {
+        id: questionId,
+      },
+    });
+
+    if (totalQuestionsCount > 1 && questionIndex < totalQuestionsCount) {
+      await prisma.question.updateMany({
+        where: {
+          quizId,
+          questionIndex: {
+            gt: questionIndex,
+          },
+        },
+        data: {
+          questionIndex: {
+            decrement: 1,
+          },
+        },
+      });
+      return questionDeleted;
+    }
+
+    return questionDeleted;
+  } catch (error) {
+    console.log("445", error);
+    if (error instanceof CustomError) {
+      throw error;
+    }
+
+    throw new CustomError("Failed to delete question", 500);
+  }
+};
+
+export const getQuizQuestions = async ({
+  quizId,
+  user,
+}: {
+  quizId: string;
+  user: string;
+}) => {
+  try {
+    const quiz = await prisma.quiz.findUnique({
+      where: {
+        id: quizId,
+      },
+      include: {
+        questions: {
+          orderBy: {
+            questionIndex: "asc",
+          },
+        },
+      },
+    });
+
+    if (!quiz) throw new CustomError("Quiz not found", 404);
+    if (quiz.creatorId !== user) {
+      throw new CustomError("You are not authorized to view this quiz", 403);
+    }
+
+    return quiz.questions.map((question) => ({
+      ...question,
+    }));
+  } catch (error) {
+    if (error instanceof CustomError) {
+      throw error;
+    }
+    throw new CustomError("Failed to fetch quiz questions", 500);
+  }
+};
+
 export const generateQuizQuestionAiDb = async ({
   quizId,
-  creatorId,
+  // creatorId,
   user,
-  questionCount,
+  // questionCount,
   quizTopic,
   quizDescription,
 }: generateAiQuestion) => {
   try {
-    if (user !== creatorId) {
-      throw new CustomError("You are not authorized to create this quiz", 403);
+    const quiz = await prisma.quiz.findUnique({
+      where: {
+        id: quizId,
+      },
+    });
+    if (!quiz) throw new CustomError("Quiz not found", 404);
+
+    if (quiz.creatorId !== user) {
+      throw new CustomError(
+        "You are not authorized to generate questions",
+        403
+      );
     }
 
     const latestQuestion = await prisma.question.findFirst({
@@ -389,17 +518,17 @@ export const generateQuizQuestionAiDb = async ({
 
     const newIndex = latestQuestion ? latestQuestion.questionIndex + 1 : 1;
 
-    if (newIndex + questionCount > 10) {
+    if (newIndex === 11) {
       throw new CustomError("Maximum number of questions reached", 400);
     }
+    const questionCount = 11 - newIndex;
 
     const completion = await openai.chat.completions.create({
-      model: "google/gemini-2.0-flash-exp:free",
-      // {
+      model: "google/learnlm-1.5-pro-experimental:free",
       messages: [
         {
           role: "user",
-          content: `Generate ${questionCount} questions for a quiz on the topic of ${quizTopic}. Description: ${quizDescription}`,
+          content: `Generate ${questionCount} questions for a quiz on the topic of ${quizTopic}. Description: ${quizDescription} and the indexing for the question should start from ${newIndex}`,
         },
       ],
       response_format: {
@@ -455,6 +584,7 @@ export const generateQuizQuestionAiDb = async ({
         },
       },
     });
+
     if (!completion?.choices[0]?.message?.content) {
       throw new CustomError("Failed to generate questions", 500);
     }
@@ -471,13 +601,20 @@ export const generateQuizQuestionAiDb = async ({
         options: question.options,
         correctOption: question.correctOption,
         quizId,
-        creatorId,
+        creatorId: user,
       };
     });
 
     const questions = await prisma.question.createManyAndReturn({
       data: dataToInsert,
       skipDuplicates: true,
+      select: {
+        id: true,
+        questionText: true,
+        questionIndex: true,
+        options: true,
+        correctOption: true,
+      },
     });
 
     return questions;
@@ -486,7 +623,8 @@ export const generateQuizQuestionAiDb = async ({
     if (error instanceof CustomError) {
       throw error;
     }
-    throw new CustomError("Failed to generate quiz question", 500);
+    console.log("Error generating quiz questions:", error);
+    throw new CustomError("Failed to generate quiz questions", 500);
   }
 };
 

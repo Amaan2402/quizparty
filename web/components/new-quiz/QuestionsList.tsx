@@ -1,51 +1,90 @@
-import React from "react";
+import { deleteQuizQuestion } from "@/utils/quiz";
+import {
+  faCircleCheck,
+  faGrip,
+  faLayerGroup,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useRef, useState } from "react";
+import toast from "react-hot-toast";
 
-type Questions = {
-  id: number;
+type Question = {
+  id: string;
   questionText: string;
-  options: string[];
-  answer: string;
+  questionIndex: number;
+  options: {
+    index: number;
+    text: string;
+  }[];
+  correctOption: number;
 };
 
-const sampledata: Questions[] = [
-  {
-    id: 1,
-    questionText: "What is the capital of France?",
-    options: ["Paris", "Madrid", "Berlin", "Rome"],
-    answer: "Paris",
-  },
-  {
-    id: 2,
-    questionText: "Which planet is known as the Red Planet?",
-    options: ["Earth", "Venus", "Mars", "Jupiter"],
-    answer: "Mars",
-  },
-  {
-    id: 3,
-    questionText: "Who wrote 'Romeo and Juliet'?",
-    options: [
-      "William Shakespeare",
-      "Charles Dickens",
-      "Jane Austen",
-      "Mark Twain",
-    ],
-    answer: "William Shakespeare",
-  },
-];
+function QuestionsList({
+  questions,
+  deleteQuestionState,
+}: {
+  questions: Question[];
+  deleteQuestionState: (id: string) => void;
+}) {
+  const [isDeleteButtonDisabled, setIsDeleteButtonDisabled] = useState(false);
 
-function QuestionsList() {
+  const handleDeleteQuestion = (id: string) => {
+    setIsDeleteButtonDisabled(true);
+    toast.promise(deleteQuizQuestion(id), {
+      loading: "Deleting question...",
+      success: (data) => {
+        console.log(data);
+        deleteQuestionState(id);
+        toast.success("Question deleted successfully.");
+        setIsDeleteButtonDisabled(false);
+        return null;
+      },
+      error: (err) => {
+        console.log(err);
+        setIsDeleteButtonDisabled(false);
+        return "Error deleting question.";
+      },
+    });
+  };
+
   return (
-    <div className="bg-[#23256b] w-full max-h-[495px] overflow-y-auto rounded-md p-4 scroll-container">
-      {sampledata.map(({ questionText, id }) => (
+    <div
+      className="bg-[#23256b] border-b-6 border-[#4549aa] w-full overflow-y-auto rounded-lg shadow-2xl hide-scrollbar"
+      style={{ maxHeight: "410px" }}
+    >
+      <div className="sticky top-0 w-full bg-[#2d2d7f] p-4 flex justify-between items-center ">
+        <div className=" flex items-center gap-2 text-xl font-medium">
+          <FontAwesomeIcon icon={faLayerGroup} color="546efe" />
+          <h1>Questions</h1>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <p className="font-light">Question Count:</p>
+          <p className="font-medium">{questions.length}</p>
+        </div>
+      </div>
+      {questions.map(({ questionText, id }) => (
         <div
           key={id}
-          className="text-white bg-[#2d2d7f] mb-3 flex items-center rounded-md justify-between p-2 px-4"
+          className="text-white m-4 bg-[#2d2d7f] mb-3 flex items-center rounded-md justify-between p-2 px-4"
+          // draggable="true"
         >
           <p>{questionText}</p>
 
-          <div className="flex justify-between items-center">
-            <p>T</p>
-            <p>D</p>
+          <div className="flex justify-between items-center gap-4">
+            <FontAwesomeIcon
+              icon={faGrip}
+              color="#9ea0e6"
+              className="cursor-pointer"
+            />
+            <button
+              className="cursor-pointer"
+              onClick={() => handleDeleteQuestion(id)}
+              disabled={isDeleteButtonDisabled}
+            >
+              <FontAwesomeIcon icon={faTrash} color="#9ea0e6" />
+            </button>
           </div>
         </div>
       ))}

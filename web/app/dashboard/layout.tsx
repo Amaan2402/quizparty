@@ -7,9 +7,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#3d3da8] flex min-h-screen w-full overflow-hidden">
+    <div className="bg-[#3d3da8] flex min-h-screen w-full">
       <SideBar />
-      <div className="p-6 w-full min-h-full bg-[#2e2c8d] overflow-y-hidden">
+      <div className="w-full h-screen bg-[#2e2c8d] overflow-auto hide-scrollbar">
         <Header />
         {children}
       </div>

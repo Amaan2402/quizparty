@@ -2,6 +2,7 @@ import {
   createAnswerDb,
   createQuestionDb,
   createQuizDb,
+  deleteQuizQuestionDb,
   generateQuizQuestionAiDb,
   getQuizDb,
   getQuizResultsDb,
@@ -15,6 +16,7 @@ import {
   quizCreationSchema,
 } from "../utils/joi";
 import { Request, Response } from "express";
+import { getQuizQuestions } from "../helperfunctions/quiz";
 
 export const createQuiz = async (req: Request, res: Response) => {
   const { error } = quizCreationSchema.validate(req.body);
@@ -76,19 +78,54 @@ export const createQuizQuestion = async (req: Request, res: Response) => {
     .json({ message: "Question created successfully", data: question });
 };
 
+export const getQuizQuestionsAll = async (req: Request, res: Response) => {
+  const { quizId } = req.params;
+  const user = getUser(req);
+  if (!quizId) {
+    return res.status(400).json({
+      message: "Quiz ID is required",
+    });
+  }
+
+  const questions = await getQuizQuestions({ quizId, user });
+  return res.status(200).json({
+    message: "Quiz questions fetched successfully",
+    data: questions,
+  });
+};
+
+export const deleteQuizQuestion = async (req: Request, res: Response) => {
+  const { questionId } = req.params;
+  if (!questionId) {
+    return res.status(400).json({ message: "Question ID is required" });
+  }
+
+  const user = getUser(req);
+  const question = await deleteQuizQuestionDb({
+    questionId,
+    user,
+  });
+
+  return res.status(200).json({
+    message: "Question deleted successfully",
+    data: question,
+  });
+};
+
 export const generateQuizQuestionAi = async (req: Request, res: Response) => {
   const { error } = aIQuestionGenerationSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
-  const { quizId, creatorId, questionCount, quizTopic, quizDescription } =
-    req.body;
+
+  const { quizId, quizTopic, quizDescription } = req.body;
+
   const user = getUser(req);
   const questions = await generateQuizQuestionAiDb({
     quizId,
-    creatorId,
+    // creatorId,
     user,
-    questionCount,
+    // questionCount,
     quizTopic,
     quizDescription,
   });

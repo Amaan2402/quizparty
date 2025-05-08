@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import CreateQuiz from "@/modals/CreateQuiz";
 import Provider from "@/context/Provider";
+import PageTransitionLoader from "@/components/PageProgressLoader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,13 +29,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased bg-[#3d3da8]`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#3d3da8] hide-scrollbar`}
       >
-        <Provider>
-          {children}
-          <Toaster />
-          <CreateQuiz />
-        </Provider>
+        <div style={{ height: "100vh", overflow: "hidden" }}>
+          <Provider>
+            {children}
+            <Toaster />
+            <PageTransitionLoader />
+            <CreateQuiz />
+          </Provider>
+        </div>
       </body>
     </html>
   );

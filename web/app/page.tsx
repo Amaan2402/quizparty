@@ -2,6 +2,7 @@ import Footer from "@/components/landing/Footer";
 import Header from "@/components/landing/Header";
 import Hero from "@/components/landing/Hero";
 import InfoCardSection from "@/components/landing/InfoCardSection";
+import PageTransitionLoader from "@/components/PageProgressLoader";
 import { getUser } from "@/utils/auth";
 import { cookies } from "next/headers";
 
@@ -15,7 +16,7 @@ export default async function Home() {
     user = null;
   }
   return (
-    <div className="text-white overflow-auto h-full">
+    <div className="text-white overflow-auto hide-scrollbar h-full">
       <Header user={user} />
       <Hero />
       <InfoCardSection />
