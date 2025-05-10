@@ -505,6 +505,52 @@ export const createQuestionDb = async ({
   }
 };
 
+export const editQuizQuestionDb = async ({
+  questionId,
+  user,
+  questionUpdateFields,
+}: {
+  questionId: string;
+  user: string;
+  questionUpdateFields: {
+    questionText?: string;
+    options?: option[];
+    correctOption?: number;
+  };
+}) => {
+  const question = await prisma.question.findUnique({
+    where: {
+      id: questionId,
+    },
+    include: {
+      quiz: true,
+    },
+  });
+
+  if (!question) throw new CustomError("Question not found", 404);
+  if (question.creatorId !== user) {
+    throw new CustomError("You are not authorized to edit this question", 403);
+  }
+
+  if (question.quiz.status !== "CREATED") {
+    throw new CustomError(
+      "Quiz is not in a valid state to edit questions",
+      400
+    );
+  }
+
+  const updateQuestion = await prisma.question.update({
+    where: {
+      id: questionId,
+    },
+    data: {
+      ...questionUpdateFields,
+    },
+  });
+
+  return updateQuestion;
+};
+
 export const deleteQuizQuestionDb = async ({
   questionId,
   user,

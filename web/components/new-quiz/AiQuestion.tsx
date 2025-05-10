@@ -1,3 +1,4 @@
+import { useQuestionStore } from "@/store/useQuestionStore";
 import { generateAndGetAiQuestions } from "@/utils/quiz";
 import { faRobot } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -15,17 +16,13 @@ type Question = {
   correctOption: number;
 };
 
-function AiQuestion({
-  quizId,
-  handleAddQuestionState,
-}: {
-  quizId: string;
-  handleAddQuestionState: (question: Question) => void;
-}) {
+function AiQuestion({ quizId }: { quizId: string }) {
   const [topic, setTopic] = React.useState<string>("");
   const [description, setDescription] = React.useState<string>("");
   const [isGenerateButtonDisabled, setIsGenerateButtonDisabled] =
     useState(false);
+
+  const { setQuestionsList } = useQuestionStore();
 
   const handleGenerateAndGetAiQuestions = async () => {
     setIsGenerateButtonDisabled(true);
@@ -36,7 +33,7 @@ function AiQuestion({
           return "No questions generated";
         }
         const questions: Question[] = data.data as Question[];
-        handleAddQuestionState(questions);
+        setQuestionsList(questions);
         setIsGenerateButtonDisabled(false);
         return "Questions generated successfully";
       },

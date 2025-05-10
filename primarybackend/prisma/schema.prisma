@@ -15,8 +15,9 @@ datasource db {
 
 enum QuizStatus {
   CREATED
-  ONGOING
-  COMPLETED
+  LIVE
+  STARTED
+  ENDED
 }
 
 enum RewardBrands {

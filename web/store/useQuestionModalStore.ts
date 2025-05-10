@@ -11,13 +11,15 @@ type Question = {
   correctOption: number;
 };
 
-type QuestionStore = {
+type QuestionModalStore = {
+  isOpen: boolean;
+  handleOpen: (question: Question) => void;
+  handleClose: () => void;
   question: Question;
-  setQuestion: (question: Question) => void;
-  resetQuestion: () => void;
 };
 
-export const useQuestionStore = create<QuestionStore>((set) => ({
+export const useQuestionModalStore = create<QuestionModalStore>((set) => ({
+  isOpen: false,
   question: {
     id: "",
     questionText: "",
@@ -25,9 +27,15 @@ export const useQuestionStore = create<QuestionStore>((set) => ({
     options: [],
     correctOption: 0,
   },
-  setQuestion: (question) => set({ question }),
-  resetQuestion: () =>
-    set({
+  handleOpen: (question: Question) => {
+    set(() => ({
+      isOpen: true,
+      question: question,
+    }));
+  },
+  handleClose: () => {
+    set(() => ({
+      isOpen: false,
       question: {
         id: "",
         questionText: "",
@@ -35,5 +43,6 @@ export const useQuestionStore = create<QuestionStore>((set) => ({
         options: [],
         correctOption: 0,
       },
-    }),
+    }));
+  },
 }));

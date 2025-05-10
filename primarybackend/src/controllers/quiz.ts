@@ -3,6 +3,7 @@ import {
   createQuestionDb,
   createQuizDb,
   deleteQuizQuestionDb,
+  editQuizQuestionDb,
   generateQuizQuestionAiDb,
   getQuizDb,
   getQuizResultsDb,
@@ -14,8 +15,8 @@ import { getUser } from "../utils/getUser";
 import {
   aIQuestionGenerationSchema,
   QuestionSchema,
+  questionupdateSchema,
   quizCreationSchema,
-  quizUpdateSchema,
   updateQuizPayloadSchema,
 } from "../utils/joi";
 import { Request, Response } from "express";
@@ -100,7 +101,7 @@ export const createQuizQuestion = async (req: Request, res: Response) => {
   }
 
   const user = getUser(req);
-
+  console.log(req.body);
   const question = await createQuestionDb({
     ...req.body,
     user,
@@ -108,6 +109,33 @@ export const createQuizQuestion = async (req: Request, res: Response) => {
   return res
     .status(201)
     .json({ message: "Question created successfully", data: question });
+};
+
+export const editQuestion = async (req: Request, res: Response) => {
+  const { error } = questionupdateSchema.validate(
+    req.body.questionUpdateFields
+  );
+  if (error) {
+    console.log("Validation error", error);
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
+  const { questionId } = req.params;
+  if (!questionId) {
+    return res.status(400).json({ message: "Question ID is required" });
+  }
+
+  const user = getUser(req);
+  const updateQuestion = await editQuizQuestionDb({
+    ...req.body,
+    questionId,
+    user,
+  });
+
+  return res.status(200).json({
+    message: "Question updated successfully",
+    data: updateQuestion,
+  });
 };
 
 export const getQuizQuestionsAll = async (req: Request, res: Response) => {

@@ -4,6 +4,7 @@ import {
   createQuiz,
   createQuizQuestion,
   deleteQuizQuestion,
+  editQuestion,
   editQuiz,
   generateQuizQuestionAi,
   getQuiz,
@@ -20,6 +21,7 @@ router.get("/:quizId", wrapAsync(getQuiz));
 router.patch("/:quizId", wrapAsync(editQuiz));
 router.patch("/start/:quizId", wrapAsync(startQuiz));
 router.post("/question", wrapAsync(createQuizQuestion));
+router.patch("/question/:questionId", wrapAsync(editQuestion));
 router.delete("/question/:questionId", wrapAsync(deleteQuizQuestion));
 router.get("/question/:quizId/all", wrapAsync(getQuizQuestionsAll));
 router.post("/question/ai", wrapAsync(generateQuizQuestionAi));

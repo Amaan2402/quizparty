@@ -1,6 +1,6 @@
 "use client";
 
-import { useModalStore } from "@/store/useModalStore";
+import { useModalStore } from "@/store/useQuizModalStore";
 import { useQuizStore } from "@/store/useQuizStore";
 import { createQuiz, editQuiz } from "@/utils/quiz";
 import Image from "next/image";

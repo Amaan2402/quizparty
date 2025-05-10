@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import QuestionInput from "./QuestionInput";
 import toast from "react-hot-toast";
 import { createQuizQuestion } from "@/utils/quiz";
+import { useQuestionStore } from "@/store/useQuestionStore";
 
 type Options = {
   index: number;
@@ -21,21 +22,17 @@ type Question = {
   correctOption: number;
 };
 
-function ManualQuestion({
-  quizId,
-  handleAddQuestionState,
-}: {
-  quizId: string;
-  handleAddQuestionState: (question: Question) => void;
-}) {
+function ManualQuestion({ quizId }: { quizId: string }) {
   const [questionText, setQuestionText] = React.useState<string>("");
   const [optionsCount, setOptionsCount] = React.useState<number>(2);
   const [options, setOptions] = useState<Options[]>([
     { index: 1, text: "" },
     { index: 2, text: "" },
   ]);
+  const [correctOption, setCorrectOption] = useState<number>(0);
 
   const [isLoading, setIsLoading] = useState(false);
+  const { setQuestionsList } = useQuestionStore();
   const handleAddOption = () => {
     if (optionsCount < 4 && optionsCount >= 2) {
       setOptions((prev) => {
@@ -54,7 +51,11 @@ function ManualQuestion({
   };
 
   const handleDeleteOption = (idx: number) => {
+    console.log(correctOption, idx);
     if (optionsCount > 2 && optionsCount <= 4) {
+      if (correctOption === idx) {
+        setCorrectOption(0);
+      }
       const newOptions = [...options];
       newOptions.splice(idx - 1, 1);
       setOptions(newOptions);
@@ -91,15 +92,20 @@ function ManualQuestion({
       toast.error("You can only add up to 4 options.");
       return;
     }
+
+    if (!correctOption) {
+      toast.error("You must select a correct option.");
+      return;
+    }
     setIsLoading(true);
 
     toast.promise(
-      createQuizQuestion({ quizId, questionText, options, correctOption: 1 }),
+      createQuizQuestion({ quizId, questionText, options, correctOption }),
       {
         loading: "Creating question...",
         success: (data) => {
           const question: Question = data.data as Question;
-          handleAddQuestionState([question]);
+          setQuestionsList([question]);
           setQuestionText("");
           setOptionsCount(2);
           setOptions([
@@ -144,6 +150,8 @@ function ManualQuestion({
               handleSetOptionText={handleSetOptionText}
               idx={idx + 1}
               value={option.text}
+              setCorrectOption={setCorrectOption}
+              correctOption={correctOption}
             />
           );
         })}

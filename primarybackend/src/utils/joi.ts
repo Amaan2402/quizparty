@@ -56,12 +56,12 @@ export const quizCreationSchema = Joi.object({
   description: Joi.string().optional().messages({
     "string.max": `"description" should have a maximum length of {100}`,
   }),
-  maxParticipants: Joi.number().integer().min(1).max(100).required().messages({
+  maxParticipants: Joi.number().integer().min(1).max(30).required().messages({
     "number.base": `"maxParticipants" should be a type of 'number'`,
     "number.empty": `"maxParticipants" cannot be an empty field`,
     "number.integer": `"maxParticipants" should be an integer`,
     "number.min": `"maxParticipants" should be a positive number`,
-    "number.max": `"maxParticipants" should be a max of 100`,
+    "number.max": `"maxParticipants" should be a max of 30`,
   }),
   reward: Joi.object({
     brand: Joi.string()
@@ -82,7 +82,7 @@ export const quizCreationSchema = Joi.object({
       "object.base": `"reward" should be a type of 'object'`,
       "object.empty": `"reward" cannot be an empty field`,
     }),
-  timePerQuestion: Joi.number().integer().min(1).max(60).required().messages({
+  timePerQuestion: Joi.number().integer().min(5).max(60).required().messages({
     "number.base": `"timePerQuestion" should be a type of 'number'`,
     "number.empty": `"timePerQuestion" cannot be an empty field`,
     "number.integer": `"timePerQuestion" should be an integer`,
@@ -91,7 +91,46 @@ export const quizCreationSchema = Joi.object({
   }),
 }).required();
 
-export const quizUpdateSchema = Joi.object;
+export const questionupdateSchema = Joi.object({
+  questionText: Joi.string().optional().messages({
+    "string.empty": `"questionText" cannot be an empty field`,
+  }),
+  options: Joi.array()
+    .items(
+      Joi.object({
+        index: Joi.number().integer().min(0).required().messages({
+          "number.base": `"index" should be a type of 'number'`,
+          "number.empty": `"index" cannot be an empty field`,
+        }),
+        text: Joi.string().optional().messages({
+          "string.empty": `"text" cannot be an empty field`,
+        }),
+      })
+        .required()
+        .min(2)
+        .messages({
+          "object.base": `"options" should be a type of 'object'`,
+          "object.empty": `"options" cannot be an empty field`,
+        })
+    )
+    .optional()
+    .messages({
+      "array.base": `"options" should be a type of 'array'`,
+      "array.empty": `"options" cannot be an empty field`,
+      "array.includesRequiredUnknowns": `"options" should contain at least one object`,
+      "array.min": `"options" should have atleast 2 options`,
+    }),
+  correctOption: Joi.number().integer().min(1).optional().messages({
+    "number.base": `"correctOptionIndex" should be a type of 'number'`,
+  }),
+})
+  .min(1)
+  .required()
+  .messages({
+    "object.min": `"questionText", "options" or "correctOption" should be present`,
+    "object.base": `"questionText", "options" or "correctOption" should be a type of 'object'`,
+    "object.empty": `"questionText", "options" or "correctOption" cannot be an empty field`,
+  });
 
 //quiz question creation schema
 export const QuestionSchema = Joi.object({
@@ -123,7 +162,7 @@ export const QuestionSchema = Joi.object({
       "array.includesRequiredUnknowns": `"options" should contain at least one object`,
       "array.min": `"options" should have atleast 2 options`,
     }),
-  correctOption: Joi.number().integer().min(0).required().messages({
+  correctOption: Joi.number().integer().min(1).required().messages({
     "number.base": `"correctOptionIndex" should be a type of 'number'`,
   }),
   quizId: Joi.string().required().messages({
@@ -171,16 +210,28 @@ const quizFieldsSchema = Joi.object({
   description: Joi.string().allow("").optional().messages({
     "string.base": "Description must be a string.",
   }),
-  maxParticipants: Joi.number().integer().positive().optional().messages({
-    "number.base": "Max participants must be a number.",
-    "number.integer": "Max participants must be an integer.",
-    "number.positive": "Max participants must be a positive number.",
-  }),
-  timePerQuestion: Joi.number().integer().positive().optional().messages({
-    "number.base": "Time per question must be a number.",
-    "number.integer": "Time per question must be an integer.",
-    "number.positive": "Time per question must be a positive number.",
-  }),
+  maxParticipants: Joi.number()
+    .integer()
+    .min(1)
+    .max(30)
+    .positive()
+    .optional()
+    .messages({
+      "number.base": "Max participants must be a number.",
+      "number.integer": "Max participants must be an integer.",
+      "number.positive": "Max participants must be a positive number.",
+    }),
+  timePerQuestion: Joi.number()
+    .integer()
+    .min(5)
+    .max(60)
+    .positive()
+    .optional()
+    .messages({
+      "number.base": "Time per question must be a number.",
+      "number.integer": "Time per question must be an integer.",
+      "number.positive": "Time per question must be a positive number.",
+    }),
 })
   .min(0) // Ensures that if QuizFieldsToUpdate is provided, it's not an empty object
   .optional()

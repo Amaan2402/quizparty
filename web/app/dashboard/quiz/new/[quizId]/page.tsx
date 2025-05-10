@@ -2,6 +2,7 @@
 import AddQuestions from "@/components/new-quiz/AddQuestions";
 import Header from "@/components/new-quiz/Header";
 import QuestionsList from "@/components/new-quiz/QuestionsList";
+import { useQuestionStore } from "@/store/useQuestionStore";
 import { useQuizStore } from "@/store/useQuizStore";
 import { getQuiz, getQuizQuestions } from "@/utils/quiz";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
@@ -21,17 +22,6 @@ type Quiz = {
   };
 };
 
-type Question = {
-  id: string;
-  questionText: string;
-  questionIndex: number;
-  options: {
-    index: number;
-    text: string;
-  }[];
-  correctOption: number;
-};
-
 export default function Page() {
   const params = useParams();
   const quizId = params.quizId as string;
@@ -39,7 +29,6 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isQuizReady, setIsQuizReady] = useState(false);
-  const [questions, setQuestions] = useState<Question[]>([]);
 
   const toastIdRef = useRef<string | null>(null);
 
@@ -52,15 +41,7 @@ export default function Page() {
     maxParticipants,
   } = useQuizStore();
 
-  const handleAddQuestionState = (questions: Question[]) => {
-    setQuestions((prev) => [...prev, ...questions]);
-  };
-
-  const deleteQuestionState = (id: string) => {
-    setQuestions((prev) => {
-      return prev.filter((question) => question.id !== id);
-    });
-  };
+  const { questionsList, setQuestionsList } = useQuestionStore();
 
   // This effect handles the toast notification for quiz readiness
   useEffect(() => {
@@ -84,7 +65,7 @@ export default function Page() {
   useEffect(() => {
     if (quiz?.maxParticipants && quiz?.timePerQuestion) {
       if (
-        questions.length > 0 &&
+        questionsList.length > 0 &&
         quiz?.maxParticipants > 0 &&
         quiz?.timePerQuestion > 0
       ) {
@@ -93,7 +74,12 @@ export default function Page() {
         setIsQuizReady(false);
       }
     }
-  }, [questions, quiz?.timePerQuestion, quiz?.maxParticipants, quiz?.title]);
+  }, [
+    questionsList,
+    quiz?.timePerQuestion,
+    quiz?.maxParticipants,
+    quiz?.title,
+  ]);
 
   // This effect fetches quiz questions when the quizId changes
   useEffect(() => {
@@ -101,10 +87,7 @@ export default function Page() {
       toast.promise(getQuizQuestions(quizId), {
         loading: null,
         success: (data) => {
-          console.log("Quiz questions loaded successfully:", data.data);
-          setQuestions((prev) => {
-            return [...prev, ...data.data];
-          });
+          setQuestionsList(data.data);
           return null;
         },
         error: (error) => {
@@ -127,7 +110,6 @@ export default function Page() {
       toast.promise(getQuiz(quizId), {
         loading: "Loading quiz...",
         success: (data) => {
-          console.log("Quiz loaded successfully:", data.data);
           setQuizData({ ...data.data });
           setLoading(false);
           return `Quiz loaded successfully!`;
@@ -170,15 +152,9 @@ export default function Page() {
         timePerQuestion={quiz.timePerQuestion}
       />
       <div className="flex gap-4 w-full justify-between text-white">
-        <AddQuestions
-          quizId={quizId}
-          handleAddQuestionState={handleAddQuestionState}
-        />
+        <AddQuestions quizId={quizId} />
         <div className="w-full flex flex-col justify-between">
-          <QuestionsList
-            questions={questions}
-            deleteQuestionState={deleteQuestionState}
-          />
+          <QuestionsList />
 
           {isQuizReady ? (
             <button className="cursor-pointer relative group inline-flex items-center justify-center px-6 py-3 font-semibold text-white bg-gradient-to-r from-pink-500 via-yellow-500 to-purple-500 rounded-xl shadow-lg hover:shadow-xl animate-gradients group-hover:animate-pulse transition duration-500 ease-in-out">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useModalStore } from "@/store/useModalStore";
+import { useModalStore } from "@/store/useQuizModalStore";
 import React from "react";
 
 function ProfileSideBarButtons() {

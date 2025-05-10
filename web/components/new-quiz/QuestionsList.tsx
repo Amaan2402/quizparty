@@ -1,5 +1,5 @@
-import { useModalStore } from "@/store/useModalStore";
-import { useQuestionStore } from "@/store/useQuestionsStore";
+import { useQuestionModalStore } from "@/store/useQuestionModalStore";
+import { useQuestionStore } from "@/store/useQuestionStore";
 import { deleteQuizQuestion } from "@/utils/quiz";
 import {
   faGrip,
@@ -10,25 +10,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 
-type Question = {
-  id: string;
-  questionText: string;
-  questionIndex: number;
-  options: {
-    index: number;
-    text: string;
-  }[];
-  correctOption: number;
-};
-
-function QuestionsList({
-  questions,
-  deleteQuestionState,
-}: {
-  questions: Question[];
-  deleteQuestionState: (id: string) => void;
-}) {
+function QuestionsList() {
   const [isDeleteButtonDisabled, setIsDeleteButtonDisabled] = useState(false);
+
+  const { questionsList: questions, deleteQuestion } = useQuestionStore();
+  const { handleOpen } = useQuestionModalStore();
 
   const handleDeleteQuestion = (id: string) => {
     setIsDeleteButtonDisabled(true);
@@ -36,7 +22,7 @@ function QuestionsList({
       loading: "Deleting question...",
       success: (data) => {
         console.log(data);
-        deleteQuestionState(id);
+        deleteQuestion(id);
         toast.success("Question deleted successfully.");
         setIsDeleteButtonDisabled(false);
         return null;
@@ -49,13 +35,6 @@ function QuestionsList({
     });
   };
 
-  const { setQuestion } = useQuestionStore();
-  const { handleOpen } = useModalStore();
-
-  const handleOpenQuestionEditModal = (question: Question) => {
-    setQuestion(question);
-    handleOpen();
-  };
   return (
     <div
       className="bg-[#23256b] border-b-6 border-[#4549aa] w-full overflow-y-auto rounded-lg shadow-2xl hide-scrollbar"
@@ -73,18 +52,17 @@ function QuestionsList({
         </div>
       </div>
       {questions.map(
-        ({ questionText, id, options, correctOption, questionIndex }) => (
+        ({ questionText, id, options, questionIndex, correctOption }) => (
           <div
             key={id}
-            className="text-white m-4 bg-[#2d2d7f] mb-3 flex items-center rounded-md justify-between p-2 px-4"
-            // draggable="true"
+            className="text-white m-4 cursor-pointer bg-[#2d2d7f] mb-3 flex items-center rounded-md justify-between p-2 px-4"
             onClick={() =>
-              handleOpenQuestionEditModal({
+              handleOpen({
                 questionText,
                 id,
-                correctOption,
                 options,
                 questionIndex,
+                correctOption,
               })
             }
           >
