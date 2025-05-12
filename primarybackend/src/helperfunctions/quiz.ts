@@ -312,10 +312,6 @@ export const getQuizDb = async ({
       throw new CustomError("You are not authorized to view this quiz", 403);
     }
 
-    if (quiz.status !== "CREATED") {
-      throw new CustomError("Quiz is Live, cannot edit this quiz", 400);
-    }
-
     if (quiz.creatorId !== user) {
       throw new CustomError("You are not authorized to view this quiz", 403);
     }
@@ -327,6 +323,45 @@ export const getQuizDb = async ({
     }
     throw new CustomError("Failed to fetch quiz", 500);
   }
+};
+
+export const deleteQuizDb = async ({
+  quizId,
+  user,
+}: {
+  quizId: string;
+  user: string;
+}) => {
+  const quiz = await prisma.quiz.findUnique({
+    where: {
+      id: quizId,
+    },
+  });
+
+  if (!quiz) throw new CustomError("Quiz not found", 404);
+  if (quiz.creatorId !== user) {
+    throw new CustomError("You are not authorized to delete this quiz", 403);
+  }
+
+  if (quiz.status === "STARTED") {
+    throw new CustomError("Quiz is already started", 400);
+  }
+
+  if (quiz.status === "ENDED") {
+    throw new CustomError("Quiz is already ended", 400);
+  }
+
+  const deletedQuiz = await prisma.quiz.delete({
+    where: {
+      id: quizId,
+    },
+  });
+
+  if (!deletedQuiz) {
+    throw new CustomError("Failed to delete quiz", 500);
+  }
+
+  return deletedQuiz;
 };
 
 export const getUserMyQuizzesDb = async ({ user }: { user: string }) => {

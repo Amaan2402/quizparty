@@ -15,8 +15,6 @@ const participantSocketsMap: ParticipantSocketsMap[] = [];
 let io: Server;
 
 function initialiseSocket(server: any) {
-  console.log("Starting socket server...");
-
   io = new Server(server, {
     cors: {
       origin: "*",
@@ -30,7 +28,9 @@ function initialiseSocket(server: any) {
     });
 
     io.on("connection", (socket) => {
+      console.log("A user connected 🔗", socket.id);
       socket.on("join-room", (data) => {
+        console.log("User joined room:", data);
         const { participantId, quizId } = data;
         socket.join(quizId);
 
@@ -48,12 +48,6 @@ function initialiseSocket(server: any) {
             quizId: data.quizId,
           });
         }
-
-        io.to(quizId).emit("update_participant_list", {
-          participantSocketsMap: participantSocketsMap.filter(
-            (socket: ParticipantSocketsMap) => socket.quizId === quizId
-          ),
-        });
 
         io.to(quizId).emit("new-participant", {
           message: `A new participant has joined room: ${quizId}`,

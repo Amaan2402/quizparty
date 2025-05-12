@@ -2,6 +2,7 @@ import {
   createAnswerDb,
   createQuestionDb,
   createQuizDb,
+  deleteQuizDb,
   deleteQuizQuestionDb,
   editQuizQuestionDb,
   generateQuizQuestionAiDb,
@@ -34,6 +35,20 @@ export const createQuiz = async (req: Request, res: Response) => {
   return res
     .status(201)
     .json({ message: "Quiz created successfully", data: quiz });
+};
+
+export const deleteQuiz = async (req: Request, res: Response) => {
+  const { quizId } = req.params;
+  if (!quizId) {
+    return res.status(400).json({ message: "Quiz ID is required" });
+  }
+  const user = getUser(req);
+  const quiz = await deleteQuizDb({ user, quizId });
+
+  return res.status(200).json({
+    message: "Quiz deleted successfully",
+    data: quiz,
+  });
 };
 
 export const editQuiz = async (req: Request, res: Response) => {

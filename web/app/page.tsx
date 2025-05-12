@@ -2,7 +2,6 @@ import Footer from "@/components/landing/Footer";
 import Header from "@/components/landing/Header";
 import Hero from "@/components/landing/Hero";
 import InfoCardSection from "@/components/landing/InfoCardSection";
-import PageTransitionLoader from "@/components/PageProgressLoader";
 import { getUser } from "@/utils/auth";
 import { cookies } from "next/headers";
 

@@ -3,6 +3,7 @@ import { wrapAsync } from "../utils/wrapAsync";
 import {
   createQuiz,
   createQuizQuestion,
+  deleteQuiz,
   deleteQuizQuestion,
   editQuestion,
   editQuiz,
@@ -18,6 +19,7 @@ import {
 const router = express.Router();
 
 router.post("/", wrapAsync(createQuiz));
+router.delete("/:quizId", wrapAsync(deleteQuiz));
 router.get("/my-quizzes", wrapAsync(getUserMyQuizzes));
 router.get("/:quizId", wrapAsync(getQuiz));
 router.patch("/:quizId", wrapAsync(editQuiz));

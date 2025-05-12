@@ -21,7 +21,6 @@ export async function middleware(req: NextRequest) {
     if (!isTokenValid) {
       return NextResponse.redirect(new URL("/auth/signin", req.url));
     }
-    return response
   } catch (error) {
     console.error("Error in middleware:", error);
     return NextResponse.redirect(new URL("/auth/signin", req.url));

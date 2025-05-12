@@ -151,8 +151,6 @@ export default function Page() {
     return <div>Error: {error}</div>;
   }
 
-  console.log(status == "CREATED");
-
   return loading ? (
     <div>Loading...</div>
   ) : error ? (

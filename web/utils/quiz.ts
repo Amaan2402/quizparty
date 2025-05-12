@@ -76,6 +76,11 @@ export const editQuiz = async ({
   return response.data;
 };
 
+export const deleteQuiz = async (quizId: string) => {
+  const response = await api.delete(`/quiz/${quizId}`);
+  return response.data;
+};
+
 export const getQuizQuestions = async (quizId: string) => {
   const response = await api.get(`/quiz/question/${quizId}/all`);
   return response.data;

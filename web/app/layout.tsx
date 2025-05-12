@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 import QuizModal from "@/modals/QuizModal";
 import PageTransitionLoader from "@/components/PageProgressLoader";
 import QuestionModal from "@/modals/QuestionModal";
+import DeleteQuizModal from "@/modals/DeleteQuizModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
           <PageTransitionLoader />
           <QuizModal />
           <QuestionModal />
+          <DeleteQuizModal />
         </div>
       </body>
     </html>
