@@ -1,6 +1,15 @@
 import { create } from "zustand";
 
+enum QuizStatus {
+  created = "CREATED",
+  live = "LIVE",
+  started = "STARTED",
+  ended = "ENDED",
+  null = "NULL",
+}
+
 type QuizData = {
+  id: string;
   title: string;
   description?: string;
   timePerQuestion: number;
@@ -9,8 +18,8 @@ type QuizData = {
     voucherCode: string;
   };
   maxParticipants: number;
-  quizId?: string;
-  id?: string;
+  totalParticipants: number;
+  status: QuizStatus;
 };
 
 type QuizStore = QuizData & {
@@ -19,6 +28,7 @@ type QuizStore = QuizData & {
 };
 
 export const useQuizStore = create<QuizStore>((set) => ({
+  id: "",
   title: "",
   description: "",
   timePerQuestion: 0,
@@ -27,11 +37,20 @@ export const useQuizStore = create<QuizStore>((set) => ({
     voucherCode: "",
   },
   maxParticipants: 0,
-  quizId: "",
+  totalParticipants: 0,
+  status: QuizStatus.null,
 
   setQuizData: (data: QuizData) => {
-    const { title, description, timePerQuestion, reward, maxParticipants, id } =
-      data;
+    const {
+      title,
+      description,
+      timePerQuestion,
+      reward,
+      maxParticipants,
+      totalParticipants,
+      id,
+      status,
+    } = data;
     set(() => ({
       title,
       description,
@@ -39,6 +58,8 @@ export const useQuizStore = create<QuizStore>((set) => ({
       reward,
       maxParticipants,
       quizId: id,
+      totalParticipants,
+      status,
     }));
   },
 
@@ -53,5 +74,7 @@ export const useQuizStore = create<QuizStore>((set) => ({
       },
       maxParticipants: 0,
       quizId: "",
+      totalParticipants: 0,
+      status: QuizStatus.null,
     })),
 }));

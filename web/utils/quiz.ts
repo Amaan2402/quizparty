@@ -146,3 +146,12 @@ export const generateAndGetAiQuestions = async ({
 
   return response.data;
 };
+
+export const getMyQuizzes = async (token: string) => {
+  const response = await api.get("/quiz/my-quizzes", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};

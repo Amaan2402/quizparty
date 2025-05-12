@@ -11,6 +11,14 @@ import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
+enum QuizStatus {
+  created = "CREATED",
+  live = "LIVE",
+  started = "STARTED",
+  ended = "ENDED",
+  null = "NULL",
+}
+
 type Quiz = {
   title: string;
   description?: string;
@@ -20,6 +28,7 @@ type Quiz = {
     brand: string;
     voucherCode: string;
   };
+  status?: QuizStatus;
 };
 
 export default function Page() {
@@ -39,6 +48,7 @@ export default function Page() {
     reward,
     timePerQuestion,
     maxParticipants,
+    status,
   } = useQuizStore();
 
   const { questionsList, setQuestionsList } = useQuestionStore();
@@ -133,18 +143,21 @@ export default function Page() {
       reward,
       timePerQuestion,
       maxParticipants,
+      status,
     });
-  }, [title, description, reward, timePerQuestion, maxParticipants]);
+  }, [title, description, reward, timePerQuestion, maxParticipants, status]);
 
   if (error) {
     return <div>Error: {error}</div>;
   }
 
+  console.log(status == "CREATED");
+
   return loading ? (
     <div>Loading...</div>
   ) : error ? (
     <div>Error: {error}</div>
-  ) : quiz ? (
+  ) : quiz?.status === "CREATED" && quiz ? (
     <div className="px-12 mt-2">
       <Header
         title={quiz.title}
@@ -174,5 +187,9 @@ export default function Page() {
         </div>
       </div>
     </div>
-  ) : null;
+  ) : (
+    <div>
+      <h1 className="text-2xl font-bold">Quiz is not in CREATED state</h1>
+    </div>
+  );
 }

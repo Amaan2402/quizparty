@@ -7,6 +7,7 @@ import {
   generateQuizQuestionAiDb,
   getQuizDb,
   getQuizResultsDb,
+  getUserMyQuizzesDb,
   joinQuizdb,
   updateQuizDb,
   updateQuizDbToStart,
@@ -76,6 +77,16 @@ export const getQuiz = async (req: Request, res: Response) => {
   return res.status(200).json({
     message: "Quiz fetched successfully",
     data: quiz,
+  });
+};
+
+export const getUserMyQuizzes = async (req: Request, res: Response) => {
+  const user = getUser(req);
+  const quizzes = await getUserMyQuizzesDb({ user });
+
+  return res.status(200).json({
+    message: "My quizzes fetched successfully",
+    data: quizzes,
   });
 };
 

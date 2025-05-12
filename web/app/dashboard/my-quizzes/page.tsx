@@ -1,9 +1,30 @@
-import React from 'react'
+import MainContent from "@/components/my-quizzes/MainContent";
+import { getMyQuizzes } from "@/utils/quiz";
+import { cookies } from "next/headers";
+import React from "react";
 
-function page() {
+async function page() {
+  const token = (await cookies()).get("token")?.value;
+  if (!token) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <h1 className="text-2xl font-bold">Please login to view this page</h1>
+      </div>
+    );
+  }
+
+  const myQuizzes = await getMyQuizzes(token);
+  console.log(myQuizzes);
+  const quizzesCreated = myQuizzes.data.quizzesCreated;
+  const quizzesJoined = myQuizzes.data.quizzesJoined;
   return (
-    <div>page</div>
-  )
+    <div className="p-8 px-32">
+      <MainContent
+        quizzesCreated={quizzesCreated}
+        quizzesJoined={quizzesJoined}
+      />
+    </div>
+  );
 }
 
-export default page
+export default page;

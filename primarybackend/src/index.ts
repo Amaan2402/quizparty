@@ -19,9 +19,10 @@ const PORT = 3005;
 const server = createServer(app);
 initialiseSocket(server);
 
+const allowedOrigins = ["http://localhost:3000", "http://192.168.31.53:3000"];
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: allowedOrigins,
     credentials: true,
   })
 );

@@ -9,6 +9,7 @@ import {
   generateQuizQuestionAi,
   getQuiz,
   getQuizQuestionsAll,
+  getUserMyQuizzes,
   joinQuiz,
   shortPollResults,
   startQuiz,
@@ -17,6 +18,7 @@ import {
 const router = express.Router();
 
 router.post("/", wrapAsync(createQuiz));
+router.get("/my-quizzes", wrapAsync(getUserMyQuizzes));
 router.get("/:quizId", wrapAsync(getQuiz));
 router.patch("/:quizId", wrapAsync(editQuiz));
 router.patch("/start/:quizId", wrapAsync(startQuiz));

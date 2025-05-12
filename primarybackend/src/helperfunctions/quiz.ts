@@ -3,7 +3,7 @@ import { CustomError } from "../utils/CustomError";
 import { prisma } from "../utils/db";
 import { getIo } from "../socket";
 
-import { RewardBrands } from "@prisma/client";
+import { QuizStatus, RewardBrands } from "@prisma/client";
 
 type option = {
   index: number;
@@ -61,7 +61,7 @@ const startQuizFlow = async (quizId: string) => {
         if (quizRoom.currentQuestionIndex === quizRoom.questions.length) {
           await prisma.quiz.update({
             data: {
-              status: "COMPLETED",
+              status: "ENDED",
             },
             where: {
               id: quizId,
@@ -303,6 +303,7 @@ export const getQuizDb = async ({
         timePerQuestion: true,
         maxParticipants: true,
         reward: true,
+        totalParticipants: true,
       },
     });
 
@@ -312,7 +313,7 @@ export const getQuizDb = async ({
     }
 
     if (quiz.status !== "CREATED") {
-      throw new CustomError("Quiz is not started yet", 400);
+      throw new CustomError("Quiz is Live, cannot edit this quiz", 400);
     }
 
     if (quiz.creatorId !== user) {
@@ -325,6 +326,135 @@ export const getQuizDb = async ({
       throw error;
     }
     throw new CustomError("Failed to fetch quiz", 500);
+  }
+};
+
+export const getUserMyQuizzesDb = async ({ user }: { user: string }) => {
+  try {
+    const userDb = await prisma.user.findUnique({
+      where: {
+        id: user,
+      },
+      select: {
+        quizCreated: {
+          include: {
+            reward: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        quizParticipated: {
+          include: {
+            quiz: {
+              include: {
+                reward: true,
+                creator: true,
+              },
+            },
+          },
+          orderBy: {
+            joinedAt: "desc",
+          },
+        },
+      },
+    });
+
+    if (!userDb) {
+      throw new CustomError("User not found", 404);
+    }
+
+    if (!userDb.quizCreated && !userDb.quizParticipated) {
+      return {
+        quizzesCreated: [],
+        quizzesJoined: [],
+      };
+    }
+
+    let quizzesCreated: {
+      id: string;
+      title: string;
+      totalParticipants: number;
+      status: QuizStatus;
+      createdAt: Date;
+      timePerQuestion: number;
+      reward?: {
+        brand: RewardBrands;
+        voucherCode: string;
+      };
+    }[] = [];
+
+    let quizzesJoined: {
+      id: string;
+      title: string;
+      totalParticipants: number;
+      status: QuizStatus;
+      createdAt: Date;
+      timePerQuestion: number;
+      joinedAt: Date;
+      reward?: {
+        brand: RewardBrands;
+        voucherCode: string;
+      };
+    }[] = [];
+
+    if (!userDb.quizCreated) {
+      quizzesCreated = [];
+    } else {
+      quizzesCreated = userDb.quizCreated.map((quiz) => {
+        return {
+          id: quiz.id,
+          createdAt: quiz.createdAt,
+          title: quiz.title,
+          totalParticipants: quiz.totalParticipants,
+          status: quiz.status,
+          timePerQuestion: quiz.timePerQuestion,
+          reward:
+            quiz.reward?.brand && quiz.reward?.voucherCode
+              ? {
+                  brand: quiz.reward.brand,
+                  voucherCode: quiz.reward.voucherCode,
+                }
+              : undefined,
+        };
+      });
+    }
+
+    if (!userDb.quizParticipated) {
+      quizzesJoined = [];
+    } else {
+      quizzesJoined = userDb.quizParticipated.map((participant) => {
+        return {
+          id: participant.quiz.id,
+          joinedAt: participant.joinedAt,
+          title: participant.quiz.title,
+          createdAt: participant.quiz.createdAt,
+          totalParticipants: participant.quiz.totalParticipants,
+          timePerQuestion: participant.quiz.timePerQuestion,
+          createdBy: participant.quiz.creator.name,
+          status: participant.quiz.status,
+          reward:
+            participant.quiz.reward?.brand &&
+            participant.quiz.reward?.voucherCode
+              ? {
+                  brand: participant.quiz.reward.brand,
+                  voucherCode: participant.quiz.reward.voucherCode,
+                }
+              : undefined,
+        };
+      });
+    }
+
+    return {
+      quizzesCreated,
+      quizzesJoined,
+    };
+  } catch (error) {
+    console.log("Error fetching quizzes:", error);
+    if (error instanceof CustomError) {
+      throw error;
+    }
+    throw new CustomError("Failed to fetch quizzes", 500);
   }
 };
 
@@ -350,12 +480,10 @@ export const updateQuizDbToStart = async ({
       throw new CustomError("You are not authorized to update this quiz", 403);
     }
 
-    if (quiz.status === "ONGOING") {
+    if (quiz.status === "LIVE") {
       throw new CustomError("Quiz already started", 400);
     }
-    if (quiz.status === "COMPLETED") {
-      throw new CustomError("Quiz already completed", 400);
-    }
+
     if (quiz.questions.length === 0) {
       throw new CustomError("No questions available for this quiz", 400);
     }
@@ -364,7 +492,7 @@ export const updateQuizDbToStart = async ({
         id: quizId,
       },
       data: {
-        status: "ONGOING",
+        status: "STARTED",
       },
     });
     const io = getIo();
@@ -699,7 +827,7 @@ export const generateQuizQuestionAiDb = async ({
     const questionCount = 11 - newIndex;
 
     const completion = await openai.chat.completions.create({
-      model: "google/learnlm-1.5-pro-experimental:free",
+      model: "meta-llama/llama-4-maverick:free",
       messages: [
         {
           role: "user",
@@ -898,7 +1026,7 @@ export const createAnswerDb = async ({
       throw new CustomError("Question not found", 404);
     }
 
-    if (question.quiz.status !== "ONGOING") {
+    if (question.quiz.status !== "STARTED") {
       throw new CustomError("Quiz is not ongoing", 400);
     }
     if (question.quiz.creatorId === user) {
@@ -951,7 +1079,7 @@ export const getQuizResultsDb = async ({
       throw new CustomError("Quiz not found", 404);
     }
 
-    if (quiz.status !== "COMPLETED") {
+    if (quiz.status !== "ENDED") {
       throw new CustomError("Quiz is not completed yet", 400);
     }
 
