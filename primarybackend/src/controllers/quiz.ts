@@ -1,4 +1,5 @@
 import {
+  banAndRemoveParticipantDb,
   createAnswerDb,
   createQuestionDb,
   createQuizDb,
@@ -229,15 +230,18 @@ export const joinQuiz = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Quiz ID is required" });
   }
 
-  const { participant, reconnected } = await joinQuizdb({
-    quizId,
-    user,
-  });
+  const { participant, reconnected, isQuizStarted, timePerQuestion } =
+    await joinQuizdb({
+      quizId,
+      user,
+    });
+
   return res.status(200).json({
     message: "JOINED_SUCCESSFULLY",
     participant: participant,
-    quizId: participant.quizId,
     reconnected: reconnected,
+    isQuizStarted: isQuizStarted,
+    timePerQuestion: timePerQuestion,
   });
 };
 
@@ -252,7 +256,11 @@ export const submitAnswer = async (req: Request, res: Response) => {
       .json({ message: "Question ID is required and must be a string" });
   }
 
-  if (!selectedOption || typeof selectedOption !== "number") {
+  if (
+    selectedOption === null ||
+    undefined ||
+    typeof selectedOption !== "number"
+  ) {
     return res.status(400).json({ message: "Selected option is required" });
   }
 
@@ -267,7 +275,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
   });
 };
 
-export const shortPollResults = async (req: Request, res: Response) => {
+export const longPollResults = async (req: Request, res: Response) => {
   const { quizId } = req.params;
   const user = getUser(req);
 
@@ -276,5 +284,32 @@ export const shortPollResults = async (req: Request, res: Response) => {
   }
 
   const results = await getQuizResultsDb({ quizId, user });
+  console.log("CONTROLLER RESULTS", results);
   return res.status(200).json(results);
+};
+
+export const banAndRemoveParticipant = async (req: Request, res: Response) => {
+  const { quizId } = req.params;
+  const { participantId } = req.body;
+
+  if (!quizId) {
+    return res.status(400).json({ message: "Quiz ID is required" });
+  }
+
+  if (!participantId) {
+    return res.status(400).json({ message: "Participant ID is required" });
+  }
+
+  const user = getUser(req);
+
+  const removedParticipant = await banAndRemoveParticipantDb({
+    quizId,
+    participantId,
+    user,
+  });
+
+  return res.status(200).json({
+    message: "Participant banned and removed successfully",
+    data: removedParticipant,
+  });
 };

@@ -48,7 +48,7 @@ model Participant {
   quizId    String
   joinedAt DateTime @default(now())
   isConnected Boolean @default(false)
-  
+  isBanned Boolean @default(false)
 
   answers Answer[]
   result ParticipantResult?
@@ -78,12 +78,16 @@ model Quiz {
   status                QuizStatus @default(CREATED)
   maxParticipants       Int @default(0)
   totalParticipants      Int @default(0)
+  isResultCalculated     Boolean @default(false)
+  avgScore               Int @default(0)
+  lowestScore            Int @default(0)
 
   participants          Participant[]
   questions             Question[]
   participantResults    ParticipantResult[]
   creator User @relation(fields: [creatorId], references: [id])
   QuizResultQueue QuizResultQueue[]
+  ScoreDistribution ScoreDistribution[]
 }
 
 
@@ -96,6 +100,7 @@ model Question {
   quizId          String  
   correctOption   Int
   creatorId       String
+  CorrectAnswerPercentage Float @default(0)
 
   answers         Answer[]
   quiz Quiz @relation(fields: [quizId], references: [id])
@@ -129,6 +134,17 @@ model ParticipantResult {
   quiz Quiz @relation(fields: [quizId], references: [id])
   participant Participant @relation(fields: [participantId], references: [id])
   @@unique([participantId, quizId]) // Ensure a participant can only have one result per quiz
+}
+
+model ScoreDistribution {
+  id     String @id @default(uuid())
+  quizId String
+  count  Int
+  label  String
+
+  Quiz   Quiz   @relation(fields: [quizId], references: [id])
+
+  @@unique([quizId, label]) // <-- composite unique key
 }
 
 model QuizResultQueue {

@@ -10,11 +10,14 @@ import authRouter from "./router/auth";
 import quizRouter from "./router/quiz";
 import { initialiseSocket } from "./socket";
 import cors from "cors";
+import { handleResetParticipantConnectionStatus } from "./utils/socket";
 
 configDotenv();
 
 const app = express();
 const PORT = 3005;
+
+handleResetParticipantConnectionStatus();
 
 const server = createServer(app);
 initialiseSocket(server);
@@ -47,7 +50,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use(
   (err: CustomError, req: Request, res: Response, next: NextFunction): void => {
-    console.log("Error occurred:", err);
+    console.log("GLOBAL CATCH::::Error occurred:", err);
     const message = err.message || "Internal Server Error";
     const statusCode = err.statusCode || 500;
     res.status(statusCode).json({ message: message });
@@ -61,3 +64,11 @@ app.use((req, res) => {
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}🚀`);
 });
+
+// process.on("uncaughtException", (err) => {
+//   console.error("Uncaught Exception:", err);
+// });
+
+// process.on("unhandledRejection", (reason) => {
+//   console.error("Unhandled Rejection:", reason);
+// });

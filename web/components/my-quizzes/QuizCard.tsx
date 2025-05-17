@@ -54,14 +54,8 @@ function QuizCard(q: quiz) {
       textColor = "text-green-800";
       iconColor = "green";
       break;
-    case QuizStatus.started:
-      redirectTo = `/dashboard/quiz/start/${q.id}`;
-      bgColor = "bg-blue-300";
-      textColor = "text-blue-800";
-      iconColor = "blue";
-      break;
     case QuizStatus.ended:
-      redirectTo = `/dashboard/quiz/${q.id}`;
+      redirectTo = `/dashboard/quiz/result/${q.id}`;
       bgColor = "bg-gray-300";
       textColor = "text-gray-800";
       iconColor = "gray";

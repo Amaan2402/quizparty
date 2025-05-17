@@ -160,3 +160,58 @@ export const getMyQuizzes = async (token: string) => {
   });
   return response.data;
 };
+
+export const joinQuiz = async (quizId: string) => {
+  const response = await api.post(`/quiz/join/${quizId}`);
+  return response.data;
+};
+
+export const startQuiz = async (quizId: string) => {
+  const response = await api.patch(`/quiz/start/${quizId}`);
+  return response.data;
+};
+
+export const submitAnswer = async ({
+  questionId,
+  selectedOption,
+}: {
+  questionId: string;
+  selectedOption: number;
+}) => {
+  const response = await api.post(`/quiz/answer/${questionId}`, {
+    selectedOption,
+  });
+
+  return response.data;
+};
+
+export const removeAndBanParticipant = async ({
+  quizId,
+  participantId,
+}: {
+  quizId: string;
+  participantId: string;
+}) => {
+  const response = await api.delete(`/quiz/ban/${quizId}`, {
+    data: {
+      participantId,
+    },
+  });
+
+  return response.data;
+};
+
+export const longPollResults = async (quizId: string, signal: AbortSignal) => {
+  try {
+    const response = await api.get(`/quiz/${quizId}/result`, {
+      signal,
+    });
+    console.log("RESULTS AXIOS", response.data);
+    return {
+      ...response.data,
+      status: response.status,
+    };
+  } catch (error) {
+    return error;
+  }
+};

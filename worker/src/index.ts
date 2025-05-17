@@ -7,7 +7,56 @@ const prisma = new PrismaClient();
 
 const ANSWER_SUBMISSION_QUEUE = "answer-submission-queue";
 const RESULT_QUEUE = "result-queue";
+function generateBucket(maxScore: number) {
+  let bucketCount = 0;
 
+  if (maxScore <= 5) {
+    bucketCount = 2;
+  } else if (maxScore <= 10) {
+    bucketCount = 3;
+  } else {
+    bucketCount = 4;
+  }
+
+  const bucketSize = Math.floor((maxScore + 1) / bucketCount);
+  const buckets = [];
+
+  let start = 0;
+  for (let i = 0; i < bucketCount; i++) {
+    let end = start + bucketSize - 1;
+
+    // Make sure last bucket ends at maxScore
+    if (i === bucketCount - 1) {
+      end = maxScore;
+    }
+
+    buckets.push({ label: `${start}-${end}`, min: start, max: end });
+    start = end + 1;
+  }
+
+  return buckets;
+}
+
+function countParticipantsInBuckets({
+  participants,
+  buckets,
+  quizId,
+}: {
+  participants: { score: number }[];
+  buckets: { label: string; min: number; max: number }[];
+  quizId: string;
+}) {
+  const scoreDistribution = [];
+
+  for (const bucket of buckets) {
+    const count = participants.filter(
+      (p) => p.score >= bucket.min && p.score <= bucket.max
+    ).length;
+    scoreDistribution.push({ label: bucket.label, count, quizId });
+  }
+
+  return scoreDistribution;
+}
 async function processSubmissionsQueue(submission: {
   id: string;
   answerId: string;
@@ -56,6 +105,7 @@ async function processResultQueue(data: {
             participants: {
               include: { answers: true },
             },
+            questions: true,
           },
         },
       },
@@ -89,9 +139,85 @@ async function processResultQueue(data: {
       skipDuplicates: true,
     });
 
-    console.log(
-      "Participants scores inserted:",
-      sortedWithRanksParticipantResults
+    console.log("QUIZ ID", quizresultQueueData.quiz.id);
+
+    //Logic for calculating average score
+    const sumOfScores = participantsScores.reduce((acc, participant) => {
+      return acc + participant.score;
+    }, 0);
+
+    const avgScore =
+      participantsScores.length > 0
+        ? sumOfScores / participantsScores.length
+        : 0;
+
+    const lowestScore = Math.min(...participantsScores.map((p) => p.score));
+
+    await prisma.quiz.update({
+      where: {
+        id: quizresultQueueData.quiz.id,
+      },
+      data: {
+        isResultCalculated: true,
+        avgScore: avgScore,
+        lowestScore: lowestScore,
+      },
+    });
+
+    //Logic for Score distriubution graph
+
+    const questionsLength = quizresultQueueData.quiz.questions.length;
+
+    const buckets = generateBucket(questionsLength);
+    const bucketCounts = countParticipantsInBuckets({
+      participants: sortedWithRanksParticipantResults,
+      buckets,
+      quizId: quizresultQueueData.quiz.id,
+    });
+
+    console.log("BUCKET COUNTS", bucketCounts);
+
+    await prisma.scoreDistribution.deleteMany({
+      where: { quizId: quizresultQueueData.quiz.id },
+    });
+
+    await prisma.scoreDistribution.createMany({
+      data: bucketCounts,
+      skipDuplicates: true,
+    });
+    // logic for correctAnswerPercentage for each question
+    const questions = await prisma.question.findMany({
+      where: {
+        quizId: quizresultQueueData.quiz.id,
+      },
+    });
+
+    const answers = await prisma.answer.findMany({
+      where: {
+        questionId: {
+          in: questions.map((q) => q.id),
+        },
+      },
+    });
+    await Promise.all(
+      questions.map(async (question) => {
+        const answersForQuestion = answers.filter(
+          (a) => a.questionId === question.id
+        );
+        const correctAnswers = answersForQuestion.filter(
+          (a) => a.isAnswerCorrect
+        ).length;
+
+        const percentageForCorrectAnswers =
+          answersForQuestion.length === 0
+            ? 0
+            : (correctAnswers / answersForQuestion.length) * 100;
+
+        await prisma.question.update({
+          where: { id: question.id },
+          data: { CorrectAnswerPercentage: percentageForCorrectAnswers },
+        });
+      })
     );
   } catch (error) {
     console.log("Error processing result queue:", error);

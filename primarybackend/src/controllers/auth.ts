@@ -43,8 +43,8 @@ export const loginUser = async (req: Request, res: Response) => {
   console.log("User data:", user);
   res.cookie("token", user.data.token, {
     httpOnly: true,
-    secure: true, // allowed only if sameSite is not 'none'
-    sameSite: "none", // use 'lax' or 'strict' for local development
+    secure: false, // Set to true in production with HTTPS
+    sameSite: "lax", // or "none" if cross-origin AND HTTPS
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 

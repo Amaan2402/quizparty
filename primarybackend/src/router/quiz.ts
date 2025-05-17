@@ -1,6 +1,7 @@
 import express from "express";
 import { wrapAsync } from "../utils/wrapAsync";
 import {
+  banAndRemoveParticipant,
   createQuiz,
   createQuizQuestion,
   deleteQuiz,
@@ -12,7 +13,7 @@ import {
   getQuizQuestionsAll,
   getUserMyQuizzes,
   joinQuiz,
-  shortPollResults,
+  longPollResults,
   startQuiz,
   submitAnswer,
 } from "../controllers/quiz";
@@ -31,7 +32,7 @@ router.get("/question/:quizId/all", wrapAsync(getQuizQuestionsAll));
 router.post("/question/ai", wrapAsync(generateQuizQuestionAi));
 router.post("/join/:quizId", wrapAsync(joinQuiz));
 router.post("/answer/:questionId/", wrapAsync(submitAnswer));
-
-router.get("/:quizId/result-status", wrapAsync(shortPollResults));
+router.get("/:quizId/result", wrapAsync(longPollResults));
+router.delete("/ban/:quizId", wrapAsync(banAndRemoveParticipant));
 
 export default router;

@@ -5,17 +5,26 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 
 type Participant = {
-  name: string;
-  email: string;
   id: string;
+  user: {
+    name: string;
+    email: string;
+    id: string;
+  };
 };
 
 function MainContent({
   quizId,
   participants,
+  isQuizStarted,
+  question,
+  handleSetStartQuiz,
 }: {
   quizId: string;
   participants: Participant[];
+  isQuizStarted: boolean;
+  question: string;
+  handleSetStartQuiz: (status: boolean) => void;
 }) {
   return (
     <div className="mt-5">
@@ -27,8 +36,20 @@ function MainContent({
         </div>
       </div>
       <div className="flex justify-between">
-        <ParticipantsList participants={participants} />
-        <StartQuizLinks quizId={quizId} />
+        <ParticipantsList participants={participants} quizId={quizId} />
+        {isQuizStarted ? (
+          <div className="w-4/12 p-2 text-white pl-10">
+            <h1 className="text-white font-semibold text-xl">
+              Current question
+            </h1>
+            <p className="text-white font-light text-lg">{question}</p>
+          </div>
+        ) : (
+          <StartQuizLinks
+            quizId={quizId}
+            handleSetStartQuiz={handleSetStartQuiz}
+          />
+        )}
       </div>
     </div>
   );

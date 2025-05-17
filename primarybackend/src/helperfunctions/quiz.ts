@@ -1,9 +1,10 @@
 import OpenAI from "openai";
 import { CustomError } from "../utils/CustomError";
 import { prisma } from "../utils/db";
-import { getIo } from "../socket";
+import { getIo, socketsMap } from "../socket";
 
 import { QuizStatus, RewardBrands } from "@prisma/client";
+import { JsonValue } from "@prisma/client/runtime/library";
 
 type option = {
   index: number;
@@ -56,9 +57,28 @@ const startQuizFlow = async (quizId: string) => {
       throw new CustomError("Socket.io is not initialized", 500);
     }
 
+    const firstQuestion = quizRoom.questions[0];
+    console.log("First question:", firstQuestion);
+    io.to(quizId).emit("new-question", {
+      question: firstQuestion,
+      totalQuestions: quizRoom.questions.length,
+      timePerQuestion: quizRoom.timePerQuestion,
+    });
+
+    quizRoom.currentQuestionIndex = 2;
+
+    await prisma.quiz.update({
+      where: {
+        id: quizId,
+      },
+      data: {
+        currentQuestionIndex: quizRoom.currentQuestionIndex,
+      },
+    });
+
     const questionInterval = setInterval(
       async () => {
-        if (quizRoom.currentQuestionIndex === quizRoom.questions.length) {
+        if (quizRoom.currentQuestionIndex === quizRoom.questions.length + 1) {
           await prisma.quiz.update({
             data: {
               status: "ENDED",
@@ -84,19 +104,28 @@ const startQuizFlow = async (quizId: string) => {
           clearInterval(questionInterval);
           io.to(quizId).emit("quiz-completed", {
             message: "Quiz has ended",
+            status: true,
           });
           quizRoom.currentQuestionIndex = 0;
           return;
         }
 
         const currentQuestion =
-          quizRoom.questions[quizRoom.currentQuestionIndex];
+          quizRoom.questions[quizRoom.currentQuestionIndex - 1];
 
         io.to(quizId).emit("new-question", {
           question: currentQuestion,
-          questionIndex: quizRoom.currentQuestionIndex + 1,
           totalQuestions: quizRoom.questions.length,
+          timePerQuestion: quizRoom.timePerQuestion,
         });
+
+        console.log(
+          "Current question index:",
+          quizRoom.currentQuestionIndex,
+          "Current question:",
+          currentQuestion.questionText
+        );
+
         quizRoom.currentQuestionIndex += 1;
 
         await prisma.quiz.update({
@@ -108,7 +137,7 @@ const startQuizFlow = async (quizId: string) => {
           },
         });
       },
-      quizRoom.timePerQuestion * 1000 + 3000
+      quizRoom.timePerQuestion * 1000 + 2000
     );
   } catch (error) {
     if (error instanceof CustomError) {
@@ -304,6 +333,21 @@ export const getQuizDb = async ({
         maxParticipants: true,
         reward: true,
         totalParticipants: true,
+        participants: {
+          where: {
+            isConnected: true,
+          },
+          select: {
+            id: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -507,6 +551,7 @@ export const updateQuizDbToStart = async ({
       },
       include: {
         questions: true,
+        participants: true,
       },
     });
 
@@ -515,12 +560,16 @@ export const updateQuizDbToStart = async ({
       throw new CustomError("You are not authorized to update this quiz", 403);
     }
 
-    if (quiz.status === "LIVE") {
-      throw new CustomError("Quiz already started", 400);
+    if (quiz.status !== "LIVE") {
+      throw new CustomError("Quiz not in the state to start", 400);
     }
 
     if (quiz.questions.length === 0) {
       throw new CustomError("No questions available for this quiz", 400);
+    }
+
+    if (quiz.participants.length === 0) {
+      throw new CustomError("No participants available for this quiz", 400);
     }
     const updatedQuiz = await prisma.quiz.update({
       where: {
@@ -528,15 +577,12 @@ export const updateQuizDbToStart = async ({
       },
       data: {
         status: "STARTED",
+        totalParticipants: quiz.participants.length,
       },
     });
     const io = getIo();
 
     if (io) {
-      io.to(quizId).emit("start-quiz", {
-        message: `The quiz has started!`,
-      });
-
       quizRooms.set(quizId, {
         currentQuestionIndex: 1,
         quizId,
@@ -547,8 +593,15 @@ export const updateQuizDbToStart = async ({
           options: Array.isArray(q.options) ? (q.options as option[]) : [],
         })),
       });
-
-      startQuizFlow(quizId);
+      setTimeout(() => {
+        console.log("Starting quiz flow after 15 seconds");
+        startQuizFlow(quizId);
+      }, 7000);
+      io.to(quizId).emit("start-quiz", {
+        status: true,
+        message: "Quiz has started",
+        startsIn: 5,
+      });
       return updatedQuiz;
     } else {
       quiz.status = "CREATED";
@@ -985,6 +1038,10 @@ export const joinQuizdb = async ({
       throw new CustomError("You cannot join your own quiz", 403);
     }
 
+    if (quiz.status === "ENDED") {
+      throw new CustomError("Quiz has already ended", 400);
+    }
+
     const participant = await prisma.participant.findUnique({
       where: {
         userId_quizId: {
@@ -994,34 +1051,49 @@ export const joinQuizdb = async ({
       },
     });
 
+    if (participant?.isBanned) {
+      throw new CustomError("You are banned from this quiz", 403);
+    }
+
+    if (participant?.isConnected) {
+      throw new CustomError("You are already connected to this quiz", 400);
+    }
+
     if (participant) {
-      if (participant.isConnected) {
-        throw new CustomError("You are already connected", 400);
-      } else {
-        const updatedParticipant = await prisma.participant.update({
-          where: {
-            id: participant.id,
-          },
-          data: {
-            isConnected: true,
-          },
-        });
+      if (quiz.status === "LIVE") {
         return {
-          participant: updatedParticipant,
+          participant: participant,
           reconnected: true,
+          isQuizStarted: false,
+          timePerQuestion: quiz.timePerQuestion,
         };
+      } else if (quiz.status === "STARTED") {
+        return {
+          participant: participant,
+          reconnected: true,
+          isQuizStarted: true,
+          timePerQuestion: quiz.timePerQuestion,
+        };
+      } else {
+        throw new CustomError("Quiz is not in a valid state to join", 400);
       }
     } else {
+      if (quiz.status !== "LIVE") {
+        throw new CustomError("Quiz is not in a valid state to join", 400);
+      }
       const newParticipant = await prisma.participant.create({
         data: {
           quizId,
           userId: user,
+          isConnected: false,
         },
       });
 
       return {
         participant: newParticipant,
         reconnected: false,
+        isQuizStarted: false,
+        timePerQuestion: quiz.timePerQuestion,
       };
     }
   } catch (error) {
@@ -1051,7 +1123,11 @@ export const createAnswerDb = async ({
       include: {
         quiz: {
           include: {
-            participants: true,
+            participants: {
+              include: {
+                user: true,
+              },
+            },
           },
         },
       },
@@ -1068,16 +1144,22 @@ export const createAnswerDb = async ({
       throw new CustomError("You cannot answer your own question", 403);
     }
 
-    const participants = question.quiz.participants.map((p) => p.id);
-    if (!participants.includes(user)) {
+    const participant = question.quiz.participants.find(
+      (p) => p.user.id === user
+    );
+    if (!participant) {
       throw new CustomError("You are not a participant in this quiz", 403);
+    }
+
+    if (participant.isBanned) {
+      throw new CustomError("You are banned from this quiz", 403);
     }
 
     await prisma.$transaction(async (tx) => {
       const answer = await tx.answer.create({
         data: {
           questionId,
-          participantId: user,
+          participantId: participant.id,
           selectedOption,
         },
       });
@@ -1096,35 +1178,45 @@ export const createAnswerDb = async ({
   }
 };
 
-export const getQuizResultsDb = async ({
-  quizId,
+const getQuizResults = async ({
+  quiz,
+  userType,
   user,
 }: {
-  quizId: string;
+  quiz: {
+    id: string;
+    title: string;
+    avgScore: number;
+    lowestScore: number;
+    participants: {
+      id: string;
+    }[];
+    totalParticipants: number;
+  };
+  userType: "CREATOR" | "PARTICIPANT";
   user: string;
 }) => {
   try {
-    const quiz = await prisma.quiz.findUnique({
-      where: { id: quizId },
-      include: {
-        participants: true,
-      },
-    });
-    if (!quiz) {
-      throw new CustomError("Quiz not found", 404);
-    }
-
-    if (quiz.status !== "ENDED") {
-      throw new CustomError("Quiz is not completed yet", 400);
-    }
-
     const participantsCount = quiz.participants.length;
 
     const quizResults = await prisma.participantResult.findMany({
       where: {
-        quizId,
+        quizId: quiz.id,
         participantId: {
           in: quiz.participants.map((p) => p.id),
+        },
+      },
+      include: {
+        participant: {
+          select: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                id: true,
+              },
+            },
+          },
         },
       },
       orderBy: {
@@ -1132,35 +1224,225 @@ export const getQuizResultsDb = async ({
       },
     });
 
-    if (!quizResults) {
-      throw new CustomError("No results found for this quiz", 404);
-    }
-
-    if (!quiz.participants.find((p) => user === p.id)) {
-      throw new CustomError("You are not a participant in this quiz", 403);
-    }
-
-    if (quizResults.length !== participantsCount) {
+    if (!quizResults || quizResults.length !== participantsCount) {
       throw new CustomError("Results not generated completely", 400);
     }
+    console.log("quizResults", quizResults);
+    const results = quizResults.map((result) => ({
+      participantId: result.participantId,
+      userId: result.participant.user.id,
+      name: result.participant.user.name,
+      email: result.participant.user.email,
+      score: result.score,
+      rank: result.rank,
+    }));
 
-    const results = quizResults.map((result) => {
-      return {
-        participantId: result.participantId,
-        score: result.score,
-        rank: result.rank,
-      };
-    });
-
-    return {
+    const restultObj: {
+      results: {
+        participantId: string;
+        userId: string;
+        name: string;
+        email: string;
+        score: number;
+        rank: number;
+      }[];
+      message: string;
+      userType: "CREATOR" | "PARTICIPANT" | null;
+      user: string;
+      quizTitle: string;
+      avgScore?: number;
+      lowestScore?: number;
+      scoreDistributionGraph?: {
+        id: string;
+        quizId: string;
+        label: string;
+        count: number;
+      }[];
+      questions?: {
+        id: string;
+        questionText: string;
+        options: JsonValue;
+        correctOption: number;
+      }[];
+      totalParticipants?: number;
+    } = {
       results,
       message: "Results fetched successfully",
-      quizId,
+      userType,
+      user: user,
+      quizTitle: quiz.title,
+      totalParticipants: quiz.totalParticipants,
     };
+
+    if (userType === "CREATOR") {
+      restultObj.avgScore = quiz.avgScore;
+      restultObj.lowestScore = quiz.lowestScore;
+
+      const scoreDistributionGraph = await prisma.scoreDistribution.findMany({
+        where: {
+          quizId: quiz.id,
+        },
+      });
+
+      restultObj.scoreDistributionGraph = scoreDistributionGraph;
+
+      const questions = await prisma.question.findMany({
+        where: {
+          quizId: quiz.id,
+        },
+        select: {
+          id: true,
+          questionText: true,
+          options: true,
+          correctOption: true,
+          CorrectAnswerPercentage: true,
+        },
+        orderBy: {
+          questionIndex: "asc",
+        },
+      });
+
+      restultObj.questions = questions;
+
+      return restultObj;
+    }
+
+    return restultObj;
+  } catch (error) {
+    console.log(error);
+    if (error instanceof CustomError) {
+      throw error;
+    }
+    throw new CustomError("Failed to fetch quiz results", 500);
+  }
+};
+
+export const getQuizResultsDb = async ({
+  quizId,
+  user,
+}: {
+  quizId: string;
+  user: string;
+}) => {
+  const start = Date.now();
+  const timeout = 10000; // 30 seconds
+  const interval = 1000; // 1 second
+
+  try {
+    while (Date.now() - start < timeout) {
+      const quiz = await prisma.quiz.findUnique({
+        where: { id: quizId },
+        include: {
+          participants: true,
+        },
+      });
+
+      if (!quiz) {
+        throw new CustomError("Quiz not found", 404);
+      }
+
+      let userType: "CREATOR" | "PARTICIPANT" | null = null;
+
+      if (quiz.creatorId === user) {
+        userType = "CREATOR";
+      } else if (quiz.participants.some((p) => p.userId === user)) {
+        userType = "PARTICIPANT";
+      } else {
+        userType = null;
+      }
+
+      if (!userType) {
+        throw new CustomError("User not authorized to view results", 403);
+      }
+
+      if (quiz.status !== "ENDED") {
+        throw new CustomError("Quiz is not completed yet", 400);
+      }
+
+      if (quiz.isResultCalculated) {
+        const quizResults = await getQuizResults({
+          quiz,
+          userType,
+          user,
+        });
+        console.log("RESULTS CALCULATED");
+        return quizResults;
+      }
+
+      // Delay before next DB check
+      console.log("RECHECKING RESULTS");
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+
+    // If timeout reached
+    console.log("Timeout reached");
+    throw new CustomError("Timeout: Results not generated yet", 408);
   } catch (error) {
     if (error instanceof CustomError) {
       throw error;
     }
     throw new CustomError("Failed to fetch quiz results", 500);
+  }
+};
+
+export const banAndRemoveParticipantDb = async ({
+  user,
+  participantId,
+  quizId,
+}: {
+  user: string;
+  participantId: string;
+  quizId: string;
+}) => {
+  try {
+    const quiz = await prisma.quiz.findUnique({
+      where: {
+        id: quizId,
+      },
+      include: {
+        participants: true,
+      },
+    });
+
+    if (!quiz) {
+      throw new CustomError("Quiz not found", 404);
+    }
+
+    if (quiz.creatorId !== user) {
+      throw new CustomError(
+        "You are not authorized to remove this participant",
+        403
+      );
+    }
+
+    const participant = quiz.participants.find((p) => p.id === participantId);
+    if (!participant) {
+      throw new CustomError("Participant not found", 404);
+    }
+
+    const updatedParticipant = await prisma.participant.update({
+      where: {
+        id: participantId,
+      },
+      data: {
+        isBanned: true,
+      },
+    });
+
+    const io = getIo();
+
+    const socketId = socketsMap.find((s) => s.participantId === participantId);
+    if (socketId) {
+      io.to(socketId.socketId).emit("participant-banned", {
+        message: "You have been banned from this quiz",
+      });
+    }
+
+    return updatedParticipant;
+  } catch (error) {
+    if (error instanceof CustomError) {
+      throw error;
+    }
+    throw new CustomError("Failed to ban participant", 500);
   }
 };

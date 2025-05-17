@@ -23,7 +23,8 @@ model Participant {
   userId      String
   quizId      String
   joinedAt    DateTime           @default(now())
-  isConnected Boolean         @default(false)
+  isConnected Boolean            @default(false)
+  isBanned    Boolean            @default(false)
   answers     Answer[]
   quiz        Quiz               @relation(fields: [quizId], references: [id])
   user        User               @relation(fields: [userId], references: [id])
@@ -31,35 +32,42 @@ model Participant {
 
   @@unique([userId, quizId])
 }
- 
+
 model Quiz {
   id                   String              @id @default(uuid())
   creatorId            String
   title                String
   description          String?
   status               QuizStatus          @default(CREATED)
-  reward               Json
   currentQuestionIndex Int
   timePerQuestion      Int
   createdAt            DateTime            @default(now())
+  maxParticipants      Int                 @default(0)
+  totalParticipants    Int                 @default(0)
+  isResultCalculated   Boolean             @default(false)
+  avgScore             Int                 @default(0)
+  lowestScore          Int                 @default(0)
   participants         Participant[]
   participantResults   ParticipantResult[]
   questions            Question[]
   creator              User                @relation(fields: [creatorId], references: [id])
   QuizResultQueue      QuizResultQueue[]
+  Reward               Reward?
+  ScoreDistribution    ScoreDistribution[]
 }
 
 model Question {
-  id            String   @id @default(uuid())
-  questionText  String
-  questionIndex Int
-  options       Json
-  quizId        String
-  creatorId     String
-  correctOption Int
-  answers       Answer[]
-  creator       User     @relation(fields: [creatorId], references: [id])
-  quiz          Quiz     @relation(fields: [quizId], references: [id])
+  id                      String   @id @default(uuid())
+  questionText            String
+  questionIndex           Int
+  options                 Json
+  quizId                  String
+  creatorId               String
+  correctOption           Int
+  CorrectAnswerPercentage Float    @default(0)
+  answers                 Answer[]
+  creator                 User     @relation(fields: [creatorId], references: [id])
+  quiz                    Quiz     @relation(fields: [quizId], references: [id])
 
   @@unique([quizId, questionIndex])
   @@unique([quizId, questionText])
@@ -76,7 +84,7 @@ model Answer {
   question        Question      @relation(fields: [questionId], references: [id])
   answerOutbox    AnswerOutbox?
 
-  @@unique([participantId, questionId]) // to ensure a participant can only answer a question once
+  @@unique([participantId, questionId])
 }
 
 model ParticipantResult {
@@ -111,8 +119,36 @@ model QuizResultQueueOutbox {
   quizResultQueue   QuizResultQueue @relation(fields: [quizResultQueueId], references: [id])
 }
 
+model Reward {
+  id          String       @id
+  quizId      String       @unique
+  brand       RewardBrands
+  voucherCode String
+  Quiz        Quiz         @relation(fields: [quizId], references: [id])
+}
+
+model ScoreDistribution {
+  id     String @id @default(uuid())
+  quizId String
+  count  Int
+  label  String
+  Quiz   Quiz   @relation(fields: [quizId], references: [id])
+
+  @@unique([quizId, label])
+}
+
 enum QuizStatus {
   CREATED
-  ONGOING
-  COMPLETED
+  LIVE
+  STARTED
+  ENDED
+}
+
+enum RewardBrands {
+  amazon
+  flipkart
+  myntra
+  ajio
+  swiggy
+  zomato
 }

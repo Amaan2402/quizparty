@@ -1,10 +1,17 @@
 import { useDeleteModalStore } from "@/store/useDeleteModalStore";
+import { startQuiz } from "@/utils/quiz";
 import { faCopy, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import toast from "react-hot-toast";
 
-function StartQuizLinks({ quizId }: { quizId: string }) {
+function StartQuizLinks({
+  quizId,
+  handleSetStartQuiz,
+}: {
+  quizId: string;
+  handleSetStartQuiz: (status: boolean) => void;
+}) {
   const copyInviteLink = () => {
     toast.success("Invite link copied to clipboard", {
       style: {
@@ -12,16 +19,39 @@ function StartQuizLinks({ quizId }: { quizId: string }) {
       },
     });
     return navigator.clipboard.writeText(
-      `${window.location.origin}/quiz/join/${quizId}`
+      `${window.location.origin}/quiz/start/${quizId}`
     );
   };
 
   const { handleOpenDeleteModal } = useDeleteModalStore();
 
+  const handleStartQuiz = async () => {
+    if (!quizId) {
+      toast.error("Quiz ID is required");
+      return;
+    }
+
+    toast.promise(startQuiz(quizId), {
+      loading: "Starting quiz...",
+      success: (data) => {
+        console.log(data);
+        handleSetStartQuiz(true);
+        return "Quiz started successfully";
+      },
+      error: (error) => {
+        console.error(error);
+        return error.response.data.message;
+      },
+    });
+  };
+
   return (
     <div className="w-4/12 p-2 text-white">
       <div>
-        <button className="bg-[#2c4cee] w-full font-semibold text-2xl py-1 rounded-md">
+        <button
+          className="bg-[#2c4cee] w-full font-semibold text-2xl py-1 rounded-md"
+          onClick={handleStartQuiz}
+        >
           Start Quiz
         </button>
       </div>

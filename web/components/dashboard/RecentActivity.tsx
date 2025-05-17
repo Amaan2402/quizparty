@@ -3,7 +3,7 @@ import RecentActivityItem from "./RecentActivityItem";
 
 function RecentActivity() {
   return (
-    <div className="bg-[#252474] mt-5 p-3 text-white rounded-lg shadow-sm h-[30%]">
+    <div className="bg-[#252474] mt-2 p-3 text-white rounded-lg shadow-sm h-[30%]">
       <h1 className="text-2xl font-medium">Your recent activity</h1>
 
       <div className="flex flex-col items-start p-1">
