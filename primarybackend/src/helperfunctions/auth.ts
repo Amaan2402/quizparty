@@ -142,3 +142,111 @@ export const getUserById = async (userId: string) => {
     throw new CustomError("User retrieval failed", 500);
   }
 };
+
+export const updateUserDb = async ({
+  user,
+  updateFields,
+}: {
+  user: string;
+  updateFields: {
+    name?: string;
+    email?: string;
+  };
+}) => {
+  try {
+    const userDb = await prisma.user.findUnique({
+      where: {
+        id: user,
+      },
+    });
+
+    if (!userDb) {
+      throw new CustomError("User not found", 404);
+    }
+
+    console.log(updateFields, "Update fields in updateUserDb");
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: user,
+      },
+      data: {
+        ...updateFields,
+      },
+      select: {
+        email: true,
+        name: true,
+        id: true,
+      },
+    });
+
+    return {
+      message: "User updated successfully",
+      data: updatedUser,
+    };
+  } catch (error) {
+    console.log(error, "Error in updateUserDb function");
+    if (error instanceof CustomError) {
+      throw error;
+    }
+    throw new CustomError("User update failed", 500);
+  }
+};
+
+export const changePasswordDb = async ({
+  user,
+  oldPassword,
+  newPassword,
+}: {
+  user: string;
+  oldPassword: string;
+  newPassword: string;
+}) => {
+  if (oldPassword === newPassword) {
+    throw new CustomError(
+      "New password cannot be the same as old password",
+      400
+    );
+  }
+
+  if (newPassword.length < 8) {
+    throw new CustomError("Password must be at least 8 characters long", 400);
+  }
+
+  const userDb = await prisma.user.findUnique({
+    where: {
+      id: user,
+    },
+  });
+
+  if (!userDb) {
+    throw new CustomError("User not found", 404);
+  }
+
+  const isOldPasswordValid = await comparePassword({
+    password: oldPassword,
+    hashedPassword: userDb.password,
+  });
+
+  if (!isOldPasswordValid) {
+    throw new CustomError("Invalid old password", 401);
+  }
+
+  const hashedNewPassword = await hashPassword(newPassword);
+  const updateUser = await prisma.user.update({
+    where: {
+      id: user,
+    },
+    data: {
+      password: hashedNewPassword,
+    },
+  });
+
+  if (!updateUser) {
+    throw new CustomError("Password update failed", 500);
+  }
+
+  return {
+    status: "success",
+  };
+};

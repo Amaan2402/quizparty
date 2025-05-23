@@ -8,6 +8,7 @@ import cookieParser from "cookie-parser";
 
 import authRouter from "./router/auth";
 import quizRouter from "./router/quiz";
+import discordRouter from "./router/discord";
 import { initialiseSocket } from "./socket";
 import cors from "cors";
 import { handleResetParticipantConnectionStatus } from "./utils/socket";
@@ -17,7 +18,11 @@ configDotenv();
 const app = express();
 const PORT = 3005;
 
-handleResetParticipantConnectionStatus();
+try {
+  handleResetParticipantConnectionStatus();
+} catch (error) {
+  console.error("Error resetting participant connection status:", error);
+}
 
 const server = createServer(app);
 initialiseSocket(server);
@@ -43,6 +48,7 @@ app.get("/api/test", (req, res) => {
 });
 app.use("/api/auth", authRouter);
 app.use("/api/quiz", quizRouter);
+app.use("/api/auth/discord", discordRouter);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World! 🌍");
@@ -64,11 +70,3 @@ app.use((req, res) => {
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}🚀`);
 });
-
-// process.on("uncaughtException", (err) => {
-//   console.error("Uncaught Exception:", err);
-// });
-
-// process.on("unhandledRejection", (reason) => {
-//   console.error("Unhandled Rejection:", reason);
-// });

@@ -31,11 +31,29 @@ enum RewardBrands {
   zomato = "zomato",
 }
 
-export function QuizList({ quiz }: { quiz: quiz[] }) {
+export function QuizList({
+  quiz,
+  mode,
+}: {
+  quiz: quiz[];
+  mode: "CREATED" | "PARTICIPATED";
+}) {
+  console.log("RENDERED QUIZ LIST", quiz.length, mode);
+  if (quiz.length === 0 && mode === "PARTICIPATED") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>
+          You have not participated in any quizzes yet. Join a quiz to see it
+          here.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="mt-5 flex gap-5">
+    <div className="mt-5 flex flex-wrap gap-4">
       {quiz.map((q) => (
-        <QuizCard key={q.id} {...q} />
+        <QuizCard key={q.id} q={q} mode={mode} />
       ))}
     </div>
   );

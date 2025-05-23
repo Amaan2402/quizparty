@@ -40,6 +40,7 @@ model User {
   quizCreated       Quiz[]
   quizParticipated  Participant[]
   questionsCreated  Question[]
+  DiscordUser       UserDiscord?
 } 
 
 model Participant {
@@ -165,4 +166,17 @@ model QuizResultQueueOutbox {
   id           String   @id @default(uuid())
   quizResultQueueId  String @unique
   quizResultQueue QuizResultQueue @relation(fields: [quizResultQueueId], references: [id])
+}
+
+model UserDiscord {
+  id             String @id @default(uuid())
+  userId          String @unique
+  discordId       String @unique
+  discordUsername String @unique
+  discordDiscriminator String @unique
+  accessToken   String
+  refreshToken  String
+  connectedAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }

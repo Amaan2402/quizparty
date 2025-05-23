@@ -20,10 +20,21 @@ export const authMiddleware = (
   next: NextFunction
 ) => {
   console.log("Auth middleware triggered", req.path);
-  const paths = ["/api/auth/login", "/api/auth/register", "/socket.io"];
+  const paths = [
+    "/api/auth/login",
+    "/api/auth/register",
+    "/socket.io",
+    "/api/quiz/discord",
+  ];
   if (paths.includes(req.path)) {
     return next();
   }
+
+  const isDiscord = req.query.isDiscord;
+  if (isDiscord) {
+    return next();
+  }
+
   const token =
     req.headers["authorization"]?.split(" ")[1] || req.cookies?.token;
   if (!token) {

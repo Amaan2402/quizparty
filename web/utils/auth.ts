@@ -37,7 +37,7 @@ export const handleLogoutUser = async () => {
   return res.data;
 };
 
-export const getUser = async (token: string) => {
+export const getUser = async (token?: string) => {
   try {
     const res = await api.get("/auth/me", {
       headers: {
@@ -67,4 +67,28 @@ export const useGetUser = async () => {
     console.error("Error fetching user:", err);
     return { data: null, error: err, loading: false };
   }
+};
+
+export const updateUser = async (updateFields: {
+  name?: string;
+  email?: string;
+}) => {
+  const res = await api.patch("/auth/update", { updateFields: updateFields });
+  console.log("User updated successfully:", res.data);
+  return res.data;
+};
+
+export const changePassword = async ({
+  oldPassword,
+  newPassword,
+}: {
+  oldPassword: string;
+  newPassword: string;
+}) => {
+  const res = await api.patch("/auth/change-password", {
+    oldPassword,
+    newPassword,
+  });
+  console.log("Password changed successfully:", res.data);
+  return res.data;
 };

@@ -57,8 +57,10 @@ function MainContent({
   quizzesJoined: quizzesJoined;
 }) {
   const [mode, setMode] = useState<"CREATED" | "PARTICIPATED">("CREATED");
-
+  console.log("RENDERED MAIN CONTENT");
+  
   const handleChangeMode = () => {
+    console.log("mode", mode);
     setMode((prev) => (prev === "CREATED" ? "PARTICIPATED" : "CREATED"));
   };
 
@@ -66,9 +68,9 @@ function MainContent({
     <div>
       <Header mode={mode} handleChangeMode={handleChangeMode} />
       {mode === "CREATED" ? (
-        <QuizList quiz={quizzesCreated} />
+        <QuizList quiz={quizzesCreated} mode={mode} />
       ) : (
-        <QuizList quiz={quizzesJoined} />
+        <QuizList quiz={quizzesJoined} mode={mode} />
       )}
       {quizzesCreated.length === 0 && <NoQuizCard />}
     </div>

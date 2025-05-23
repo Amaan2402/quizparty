@@ -1,7 +1,7 @@
 import { faCircle, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 type quiz = {
   id: string;
@@ -34,35 +34,87 @@ enum RewardBrands {
   zomato = "zomato",
 }
 
-function QuizCard(q: quiz) {
+function QuizCard({ q, mode }: { q: quiz; mode: "CREATED" | "PARTICIPATED" }) {
   let redirectTo = "/";
 
   let iconColor = "";
   let bgColor = "";
   let textColor = "";
 
-  switch (q.status) {
-    case QuizStatus.created:
-      redirectTo = `/dashboard/quiz/new/${q.id}`;
-      bgColor = "bg-red-300";
-      textColor = "text-red-800";
-      iconColor = "red";
-      break;
-    case QuizStatus.live:
-      redirectTo = `/dashboard/quiz/live/${q.id}`;
-      bgColor = "bg-green-300";
-      textColor = "text-green-800";
-      iconColor = "green";
-      break;
-    case QuizStatus.ended:
-      redirectTo = `/dashboard/quiz/result/${q.id}`;
-      bgColor = "bg-gray-300";
-      textColor = "text-gray-800";
-      iconColor = "gray";
-      break;
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+  console.log(q);
+
+  useEffect(() => {
+    if (mode === "PARTICIPATED") {
+      if (q.status === QuizStatus.created) {
+        setIsButtonDisabled(true);
+      } else {
+        setIsButtonDisabled(false);
+      }
+    }
+  }, [q.status, mode]);
+
+  if (mode === "CREATED") {
+    switch (q.status) {
+      case QuizStatus.created:
+        redirectTo = `/dashboard/quiz/new/${q.id}`;
+        bgColor = "bg-red-300";
+        textColor = "text-red-800";
+        iconColor = "red";
+        break;
+      case QuizStatus.live:
+        redirectTo = `/dashboard/quiz/live/${q.id}`;
+        bgColor = "bg-green-300";
+        textColor = "text-green-800";
+        iconColor = "green";
+        break;
+      case QuizStatus.started:
+        redirectTo = `/dashboard/quiz/live/${q.id}`;
+        bgColor = "bg-yellow-300";
+        textColor = "text-yellow-800";
+        iconColor = "yellow";
+        break;
+      case QuizStatus.ended:
+        redirectTo = `/dashboard/quiz/result/${q.id}`;
+        bgColor = "bg-gray-300";
+        textColor = "text-gray-800";
+        iconColor = "gray";
+        break;
+    }
+  } else {
+    switch (q.status) {
+      case QuizStatus.created:
+        // redirectTo = `/dashboard/quiz/${q.id}`;
+        // setIsButtonDisabled(true);
+        // toast.error("Quiz is not live yet");
+        bgColor = "bg-red-300";
+        textColor = "text-red-800";
+        iconColor = "red";
+        break;
+      case QuizStatus.live:
+        redirectTo = `/quiz/start/${q.id}`;
+        // setIsButtonDisabled(true);
+        // toast.error("Quiz is not live yet");
+        bgColor = "bg-green-300";
+        textColor = "text-green-800";
+        iconColor = "green";
+        break;
+      case QuizStatus.started:
+        redirectTo = `/quiz/start/${q.id}`;
+        bgColor = "bg-yellow-300";
+        textColor = "text-yellow-800";
+        iconColor = "yellow";
+        break;
+      case QuizStatus.ended:
+        redirectTo = `/dashboard/quiz/result/${q.id}`;
+        bgColor = "bg-gray-300";
+        textColor = "text-gray-800";
+        iconColor = "gray";
+        break;
+    }
   }
   return (
-    <div className="bg-[#373694] border-2 border-[#2f3271] w-4/12 mb-2 text-white p-4 rounded-lg">
+    <div className="bg-[#373694] border-2 border-[#2f3271] min-w-5/12 max-w-5/12 mb-2 text-white p-4 rounded-lg">
       <div className="flex justify-between w-full items-center">
         <h1 className="font-semibold text-xl">{q.title}</h1>
         <div
@@ -83,7 +135,14 @@ function QuizCard(q: quiz) {
       </div>
       <div className="mt-2">
         <Link href={redirectTo}>
-          <button className="w-full rounded-md font-medium bg-[#4e76f1] py-1">
+          <button
+            className={`w-full rounded-md font-medium ${
+              q.status === "CREATED" && mode === "PARTICIPATED"
+                ? "bg-[#7992dc]"
+                : "bg-[#4e76f1]"
+            } py-1`}
+            disabled={isButtonDisabled}
+          >
             Go to Quiz
           </button>
         </Link>

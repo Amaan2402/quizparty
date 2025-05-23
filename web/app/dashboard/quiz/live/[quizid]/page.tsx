@@ -135,6 +135,7 @@ function Page() {
           console.log(data);
           setQuiz(data.data);
           setParticipants([...data.data.participants]);
+          setIsQuizStarted(data.data.status === "STARTED" ? true : false);
           setLoading(false);
           return `Quiz details loaded successfully!`;
         },
@@ -211,7 +212,10 @@ function Page() {
         <p className="mt-4 text-white font-semibold text-lg">
           Results will be available soon.
         </p>
-        <Link href={resultPageLink} className="mt-4 hover:underline text-blue-500">
+        <Link
+          href={resultPageLink}
+          className="mt-4 hover:underline text-blue-500"
+        >
           View Results
         </Link>
       </div>

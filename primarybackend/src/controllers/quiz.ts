@@ -3,15 +3,19 @@ import {
   createAnswerDb,
   createQuestionDb,
   createQuizDb,
+  createQuizViaDiscordDb,
   deleteQuizDb,
   deleteQuizQuestionDb,
   editQuizQuestionDb,
   generateQuizQuestionAiDb,
   getQuizDb,
   getQuizResultsDb,
+  getUserDashboardAnalyticsDb,
   getUserMyQuizzesDb,
+  handleLeaveQuiz,
   joinQuizdb,
   updateQuizDb,
+  updateQuizDbToLive,
   updateQuizDbToStart,
 } from "../helperfunctions/quiz";
 import { getUser } from "../utils/getUser";
@@ -36,6 +40,32 @@ export const createQuiz = async (req: Request, res: Response) => {
   return res
     .status(201)
     .json({ message: "Quiz created successfully", data: quiz });
+};
+
+export const createQuizDiscord = async (req: Request, res: Response) => {
+  const {
+    title,
+    description,
+    timePerQuestion,
+    maxParticipants,
+    topic,
+    aiPrompt,
+    discordId,
+  } = req.body;
+  const quiz = await createQuizViaDiscordDb({
+    discordId,
+    title,
+    description,
+    timePerQuestion,
+    maxParticipants,
+    topic,
+    aiPrompt,
+  });
+
+  return res.status(200).json({
+    message: "Quiz created successfully",
+    data: quiz,
+  });
 };
 
 export const deleteQuiz = async (req: Request, res: Response) => {
@@ -106,15 +136,59 @@ export const getUserMyQuizzes = async (req: Request, res: Response) => {
   });
 };
 
-export const startQuiz = async (req: Request, res: Response) => {
+export const updateQuizToLive = async (req: Request, res: Response) => {
   const { quizId } = req.params;
+  const { isDiscord = false, discordUserId = "" } = req.query;
+
   if (!quizId) {
     return res.status(400).json({ message: "Quiz ID is required" });
   }
 
-  const user = getUser(req);
+  let user;
+  if (!isDiscord) {
+    user = getUser(req);
+  }
 
-  const updateQuiz = await updateQuizDbToStart({ quizId, user });
+  if (isDiscord && !discordUserId) {
+    return res.status(400).json({ message: "Discord user ID is required" });
+  }
+
+  const updatedQuiz = await updateQuizDbToLive({
+    user: user ? user : "",
+    discordUserId: typeof discordUserId === "string" ? discordUserId : "",
+    quizId,
+    isDiscord: isDiscord ? true : false,
+  });
+
+  return res.status(200).json({
+    message: "Quiz updated to live successfully",
+    data: updatedQuiz,
+  });
+};
+
+export const startQuiz = async (req: Request, res: Response) => {
+  const { quizId } = req.params;
+  const { isDiscord = false, discordUserId } = req.query;
+
+  if (!quizId) {
+    return res.status(400).json({ message: "Quiz ID is required" });
+  }
+
+  let user;
+  if (!isDiscord) {
+    user = getUser(req);
+  }
+
+  if (isDiscord && !discordUserId) {
+    return res.status(400).json({ message: "Discord user ID is required" });
+  }
+
+  const updateQuiz = await updateQuizDbToStart({
+    quizId,
+    user: user ? user : "",
+    discordUserId: typeof discordUserId === "string" ? discordUserId : "",
+    isDiscord: isDiscord ? true : false,
+  });
   return res
     .status(200)
     .json({ message: "Quiz started successfully", data: updateQuiz });
@@ -230,7 +304,7 @@ export const joinQuiz = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Quiz ID is required" });
   }
 
-  const { participant, reconnected, isQuizStarted, timePerQuestion } =
+  const { participant, reconnected, reward, isQuizStarted, timePerQuestion } =
     await joinQuizdb({
       quizId,
       user,
@@ -242,6 +316,7 @@ export const joinQuiz = async (req: Request, res: Response) => {
     reconnected: reconnected,
     isQuizStarted: isQuizStarted,
     timePerQuestion: timePerQuestion,
+    reward,
   });
 };
 
@@ -311,5 +386,31 @@ export const banAndRemoveParticipant = async (req: Request, res: Response) => {
   return res.status(200).json({
     message: "Participant banned and removed successfully",
     data: removedParticipant,
+  });
+};
+
+export const getUserDashboardAnalytics = async (
+  req: Request,
+  res: Response
+) => {
+  const user = getUser(req);
+  const dashboardAnalytics = await getUserDashboardAnalyticsDb(user);
+  return res.status(200).json({
+    message: "Dashboard analytics fetched successfully",
+    data: dashboardAnalytics,
+  });
+};
+
+export const leaveQuiz = async (req: Request, res: Response) => {
+  const { quizId } = req.params;
+  const user = getUser(req);
+  if (!quizId) {
+    return res.status(400).json({ message: "Quiz ID is required" });
+  }
+
+  const deletedParticipant = await handleLeaveQuiz({ quizId, user });
+  return res.status(200).json({
+    message: "Left quiz successfully",
+    data: deletedParticipant,
   });
 };

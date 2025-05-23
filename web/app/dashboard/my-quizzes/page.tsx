@@ -14,6 +14,7 @@ async function page() {
   }
 
   const myQuizzes = await getMyQuizzes(token);
+  console.log(myQuizzes);
   const quizzesCreated = myQuizzes.data.quizzesCreated;
   const quizzesJoined = myQuizzes.data.quizzesJoined;
   return (

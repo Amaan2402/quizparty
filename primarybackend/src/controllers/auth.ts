@@ -1,6 +1,13 @@
 import { Request, Response } from "express";
 import { loginSchema, registerSchema } from "../utils/joi";
-import { createUser, getUserById, loginUserDb } from "../helperfunctions/auth";
+import {
+  changePasswordDb,
+  createUser,
+  getUserById,
+  loginUserDb,
+  updateUserDb,
+} from "../helperfunctions/auth";
+import { getUser } from "../utils/getUser";
 
 //ts types
 interface RegisterRequestBody {
@@ -54,7 +61,7 @@ export const loginUser = async (req: Request, res: Response) => {
   });
 };
 
-export const getUser = async (req: Request, res: Response) => {
+export const getUserDb = async (req: Request, res: Response) => {
   const userId = req.user?.userId;
   if (!userId) {
     return res.status(404).json({
@@ -65,5 +72,33 @@ export const getUser = async (req: Request, res: Response) => {
   return res.json({
     message: "User fetched successfully",
     data: user,
+  });
+};
+
+export const updateUser = async (req: Request, res: Response) => {
+  const user = getUser(req);
+  console.log(req.body);
+  const { updateFields } = req.body;
+  const updatedUser = await updateUserDb({
+    user: user,
+    updateFields,
+  });
+
+  return res.json(updatedUser);
+};
+
+export const changepassword = async (req: Request, res: Response) => {
+  const user = getUser(req);
+  const { oldPassword, newPassword } = req.body;
+
+  const updatedUser = await changePasswordDb({
+    user: user,
+    oldPassword,
+    newPassword,
+  });
+
+  return res.status(200).json({
+    message: "Password updated successfully",
+    data: updatedUser,
   });
 };

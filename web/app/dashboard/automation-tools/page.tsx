@@ -1,9 +1,10 @@
-import React from 'react'
+"use client";
 
-function page() {
-  return (
-    <div>page</div>
-  )
+import MainContent from "@/components/automation/MainContent";
+import React from "react";
+
+function Page() {
+  return <MainContent />;
 }
 
-export default page
+export default Page;

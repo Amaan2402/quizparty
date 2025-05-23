@@ -26,18 +26,13 @@ function SideBar() {
           icon={faBarsStaggered}
         />
         <SideBarNavItem
-          title="Profile"
-          redirectUrl="/dashboard/profile"
-          icon={faUser}
-        />
-        <SideBarNavItem
           title="Automation tools"
           redirectUrl="/dashboard/automation-tools"
           icon={faRobot}
         />
         <SideBarNavItem
           title="Settings"
-          redirectUrl="/dashboard/profile/settings"
+          redirectUrl="/dashboard/settings"
           icon={faGear}
         />
       </div>

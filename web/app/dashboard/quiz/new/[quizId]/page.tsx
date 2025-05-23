@@ -4,7 +4,7 @@ import Header from "@/components/new-quiz/Header";
 import QuestionsList from "@/components/new-quiz/QuestionsList";
 import { useQuestionStore } from "@/store/useQuestionStore";
 import { useQuizStore } from "@/store/useQuizStore";
-import { getQuiz, getQuizQuestions } from "@/utils/quiz";
+import { getQuiz, getQuizQuestions, updateQuizToLive } from "@/utils/quiz";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useParams } from "next/navigation";
@@ -38,6 +38,7 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isQuizReady, setIsQuizReady] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
   const toastIdRef = useRef<string | null>(null);
 
@@ -70,6 +71,27 @@ export default function Page() {
       toastIdRef.current = null;
     }
   }, [isQuizReady]);
+
+  const handleUpdateQuizToLive = () => {
+    if (isQuizReady) {
+      setIsButtonDisabled(true);
+      toast.promise(updateQuizToLive(quizId), {
+        loading: "Updating quiz to live...",
+        success: (data) => {
+          setIsButtonDisabled(false);
+          window.location.href = `/dashboard/quiz/live/${quizId}`;
+          return "Quiz is now live!";
+        },
+        error: (error) => {
+          setIsButtonDisabled(false);
+          console.error("Error updating quiz to live:", error);
+          return `Error updating quiz to live: ${
+            error.response?.data?.message || "Something went wrong"
+          }`;
+        },
+      });
+    }
+  };
 
   // This effect checks if the quiz is ready
   useEffect(() => {
@@ -168,7 +190,11 @@ export default function Page() {
           <QuestionsList />
 
           {isQuizReady ? (
-            <button className="cursor-pointer relative group inline-flex items-center justify-center px-6 py-3 font-semibold text-white bg-gradient-to-r from-pink-500 via-yellow-500 to-purple-500 rounded-xl shadow-lg hover:shadow-xl animate-gradients group-hover:animate-pulse transition duration-500 ease-in-out">
+            <button
+              className="cursor-pointer relative group inline-flex items-center justify-center px-6 py-3 font-semibold text-white bg-gradient-to-r from-pink-500 via-yellow-500 to-purple-500 rounded-xl shadow-lg hover:shadow-xl animate-gradients group-hover:animate-pulse transition duration-500 ease-in-out"
+              disabled={isButtonDisabled}
+              onClick={handleUpdateQuizToLive}
+            >
               <span className="absolute inset-0 bg-gradient-to-r from-pink-500 via-yellow-500 to-purple-500 blur opacity-70 group-hover:opacity-100 transition duration-500 rounded-xl animate-gradient"></span>
               <span className="relative text-xl font-semibold z-10">
                 Proceed to Live Room

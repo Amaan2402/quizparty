@@ -1,6 +1,6 @@
 import React from "react";
 import QuizStatsCard from "./QuizStatsCard";
-import ScoreDistributionGraph from "./ScoreDistributionGraph";
+import ScoreDistributionGraph from "../../charts/ScoreDistributionGraph";
 import QuestionBreakDown from "./QuestionBreakDown";
 
 function StatsDashBoard({

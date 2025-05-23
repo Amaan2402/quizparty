@@ -48,7 +48,7 @@ const CountdownScreen = ({ seconds }: { seconds: number }) => (
 
 const WaitingScreen = () => (
   <div className="flex flex-col items-center justify-center h-screen">
-    <h1 className="text-2xl font-bold text-blue-500">Quiz is not live</h1>
+    <h1 className="text-2xl font-bold text-blue-500">Quiz is in Live mode</h1>
     <h1 className="text-xl font-medium">
       Please wait... Quiz is not started yet
     </h1>
@@ -59,7 +59,7 @@ type QuizStatus =
   | "loading"
   | "waiting"
   | "countdown"
-  | "live"
+  | "started"
   | "error"
   | "isWaitingForNextQuestion";
 
@@ -74,6 +74,10 @@ function Page() {
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [question, setQuestion] = useState<Question | null>(null);
   const [timePerQuestion, setTimePerQuestion] = useState(0);
+  const [reward, setReward] = useState<{
+    brand: string;
+    voucherCode: string;
+  } | null>(null);
 
   const [isQuizEnded, setIsQuizEnded] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
@@ -106,7 +110,7 @@ function Page() {
         setCountDown((prev) => {
           if (prev <= 1) {
             clearInterval(quizStartsInInterval);
-            setQuizStatus("live");
+            setQuizStatus("started");
             return 0;
           }
           return prev - 1;
@@ -117,7 +121,6 @@ function Page() {
     socket.current.on("new-question", (data) => {
       setQuestion(data.question);
       setTimePerQuestion(data.timePerQuestion);
-      setQuizStatus("live");
     });
 
     socket.current.on("quiz-completed", (data) => {
@@ -128,6 +131,9 @@ function Page() {
 
     socket.current.on("participant-banned", () => {
       setIsBanned(true);
+      setTimeout(() => {
+        window.location.href = "/dashboard/my-quizzes";
+      }, 5000);
     });
 
     return () => {
@@ -146,6 +152,7 @@ function Page() {
           console.log("Joined quiz successfully", data);
           setParticipant(data.participant);
           setTimePerQuestion(data.timePerQuestion);
+          setReward(data.reward);
           if (data.reconnected && data.isQuizStarted) {
             setQuizStatus("isWaitingForNextQuestion");
             return "Reconnected to quiz: waiting for next question";
@@ -188,16 +195,37 @@ function Page() {
   }
 
   // Render UI based on quiz status
-  if (quizStatus === "loading") return <LoadingScreen />;
-  if (quizStatus === "error") return <ErrorScreen message={error} />;
-  if (quizStatus === "waiting") return <WaitingScreen />;
-  if (quizStatus === "countdown")
-    return <CountdownScreen seconds={countDown} />;
+  if (quizStatus === "loading") return;
+  <div>
+    <Header reward={reward} quizId={quizId as string} />
+    <LoadingScreen />;
+  </div>;
+
+  if (quizStatus === "error")
+    return (
+      <div>
+        <Header reward={reward} quizId={quizId as string} />
+        <ErrorScreen message={error} />
+      </div>
+    );
+
+  if (quizStatus === "waiting")
+    return (
+      <div>
+        <Header reward={reward} quizId={quizId as string} />
+        <WaitingScreen />
+      </div>
+    );
+  if (quizStatus === "countdown") return;
+  <div>
+    <Header reward={reward} quizId={quizId as string} />
+    <CountdownScreen seconds={countDown} />;
+  </div>;
 
   if (quizStatus === "isWaitingForNextQuestion") {
     return (
       <div>
-        <Header />
+        <Header reward={reward} quizId={quizId as string} />
         <div className="flex flex-col items-center justify-center h-screen">
           <h1 className="text-2xl font-bold text-blue-500">
             Waiting for next question...
@@ -210,7 +238,7 @@ function Page() {
   if (isQuizEnded) {
     return (
       <div>
-        <Header />
+        <Header reward={reward} quizId={quizId as string} />
         <div className="flex flex-col items-center justify-center h-screen">
           <h1 className="text-2xl font-bold text-blue-500">
             Quiz has ended. Thank you for participating!
@@ -221,10 +249,10 @@ function Page() {
       </div>
     );
   }
-  if (quizStatus === "live" && question)
+  if (quizStatus === "started" && question)
     return (
       <div>
-        <Header />
+        <Header reward={reward} quizId={quizId as string} />
         <MainContent
           question={question}
           timePerQuestion={timePerQuestion}

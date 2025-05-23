@@ -23,6 +23,5 @@ export const toggleUserDisconnectionStatus = async (participantId: string) => {
     console.log("User disconnection status updated successfully");
   } catch (error) {
     console.error("Error updating user disconnection status:", error);
-    throw new Error("Failed to update user disconnection status");
   }
 };

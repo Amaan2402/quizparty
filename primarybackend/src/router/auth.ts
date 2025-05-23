@@ -1,5 +1,11 @@
-import express from "express";
-import { getUser, loginUser, registerUser } from "../controllers/auth";
+import express, { Request, Response } from "express";
+import {
+  changepassword,
+  getUserDb,
+  loginUser,
+  registerUser,
+  updateUser,
+} from "../controllers/auth";
 import { wrapAsync } from "../utils/wrapAsync";
 import { sendEmail } from "../controllers/resend";
 const router = express.Router();
@@ -16,6 +22,9 @@ router.delete("/logout", (req, res) => {
   });
   res.status(200).json({ message: "Logged out successfully" });
 });
-router.get("/me", wrapAsync(getUser));
+router.get("/me", wrapAsync(getUserDb));
+router.patch("/update", wrapAsync(updateUser));
 router.post("/send-email", wrapAsync(sendEmail));
+router.patch("/change-password", wrapAsync(changepassword));
+
 export default router;

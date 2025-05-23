@@ -7,7 +7,7 @@ function RecentActivityItem({
   score,
 }: {
   title: string;
-  score: string;
+  score: number;
 }) {
   return (
     <div className="mb-2 flex items-center justify-between w-7/12">

@@ -32,7 +32,7 @@ function ProfileSideBarButtons() {
       <div className="mt-3">
         <input
           type="text"
-          placeholder="Enter title"
+          placeholder="Enter quiz inviation link"
           className="w-full px-3 py-2 rounded text-white border border-[#464aba] outline-none"
           value={quizLink}
           onChange={(e) => setQuizLink(e.target.value)}

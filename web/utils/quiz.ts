@@ -153,6 +153,7 @@ export const generateAndGetAiQuestions = async ({
 };
 
 export const getMyQuizzes = async (token: string) => {
+  console.log("TOKEN IN QUIZ", token);
   const response = await api.get("/quiz/my-quizzes", {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -214,4 +215,19 @@ export const longPollResults = async (quizId: string, signal: AbortSignal) => {
   } catch (error) {
     return error;
   }
+};
+
+export const fetchUserdashboardData = async () => {
+  const response = await api.get("/quiz/dashboard/analytics");
+  return response.data;
+};
+
+export const updateQuizToLive = async (quizId: string) => {
+  const response = await api.patch(`/quiz/live/${quizId}`);
+  return response.data;
+};
+
+export const leaveQuiz = async (quizId: string) => {
+  const response = await api.delete(`/quiz/leave/${quizId}`);
+  return response.data;
 };

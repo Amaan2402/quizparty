@@ -5,6 +5,8 @@ import { getIo, socketsMap } from "../socket";
 
 import { QuizStatus, RewardBrands } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
+import { startOfDay, subDays } from "date-fns";
+import { GoogleGenAI, Type } from "@google/genai";
 
 type option = {
   index: number;
@@ -193,6 +195,81 @@ export const createQuizDb = async ({
     }
 
     throw new CustomError("Failed to create quiz", 500);
+  }
+};
+
+export const createQuizViaDiscordDb = async ({
+  discordId,
+  title,
+  description,
+  timePerQuestion,
+  maxParticipants,
+  topic,
+  aiPrompt,
+}: {
+  discordId: string;
+  title: string;
+  description?: string;
+  timePerQuestion: number;
+  maxParticipants: number;
+  topic: string;
+  aiPrompt: string;
+}) => {
+  try {
+    const discordUser = await prisma.userDiscord.findUnique({
+      where: {
+        discordId,
+      },
+    });
+
+    if (!discordUser) {
+      throw new CustomError("Discord user not found", 404);
+    }
+
+    const quiz = await prisma.quiz.create({
+      data: {
+        creatorId: discordUser.userId,
+        title,
+        description,
+        timePerQuestion,
+        currentQuestionIndex: 0,
+        maxParticipants,
+      },
+    });
+
+    if (!quiz) {
+      throw new CustomError("Failed to create quiz", 500);
+    }
+
+    console.log("Quiz created successfully:", quiz);
+
+    const quizQuestionsAi = await generateQuizQuestionAiDb({
+      quizId: quiz.id,
+      user: discordUser.userId,
+      quizTopic: topic,
+      quizDescription: aiPrompt,
+    });
+
+    if (!quizQuestionsAi) {
+      throw new CustomError("Failed to generate quiz questions", 500);
+    }
+
+    if (quizQuestionsAi.length === 0) {
+      throw new CustomError("No quiz questions generated", 500);
+    }
+
+    console.log("Quiz questions generated successfully:", quizQuestionsAi);
+
+    return {
+      quiz,
+      quizQuestionsAi,
+    };
+  } catch (error) {
+    console.log("Error creating quiz via Discord:", error);
+    if (error instanceof CustomError) {
+      throw error;
+    }
+    throw new CustomError("Failed to create quiz via Discord", 500);
   }
 };
 
@@ -537,12 +614,92 @@ export const getUserMyQuizzesDb = async ({ user }: { user: string }) => {
   }
 };
 
+export const updateQuizDbToLive = async ({
+  user,
+  isDiscord,
+  discordUserId,
+  quizId,
+}: {
+  user: string;
+  discordUserId: string;
+  isDiscord: boolean;
+  quizId: string;
+}) => {
+  try {
+    const quiz = await prisma.quiz.findUnique({
+      where: {
+        id: quizId,
+      },
+    });
+    console.log("Quiz found:", quiz);
+    if (!quiz) {
+      throw new CustomError("Quiz not found", 404);
+    }
+
+    if (isDiscord) {
+      const discordUser = await prisma.userDiscord.findUnique({
+        where: {
+          discordId: discordUserId,
+        },
+      });
+
+      if (!discordUser) {
+        throw new CustomError("Discord user not found", 404);
+      }
+
+      if (discordUser.userId !== quiz.creatorId) {
+        throw new CustomError(
+          "You are not authorized to update this quiz",
+          403
+        );
+      }
+    } else {
+      console.log("HERE");
+      if (quiz.creatorId !== user) {
+        throw new CustomError(
+          "You are not authorized to update this quiz",
+          403
+        );
+      }
+    }
+
+    if (quiz.status === "LIVE") {
+      throw new CustomError("Quiz is already live", 400);
+    }
+
+    if (quiz.status !== "CREATED") {
+      throw new CustomError("Quiz is not in a valid state to update", 400);
+    }
+
+    const updatedQuiz = await prisma.quiz.update({
+      where: {
+        id: quizId,
+      },
+      data: {
+        status: "LIVE",
+      },
+    });
+
+    return updatedQuiz;
+  } catch (error) {
+    console.log("Error updating quiz to live:", error);
+    if (error instanceof CustomError) {
+      throw error;
+    }
+    throw new CustomError("Failed to update quiz", 500);
+  }
+};
+
 export const updateQuizDbToStart = async ({
   quizId,
   user,
+  discordUserId,
+  isDiscord,
 }: {
   quizId: string;
   user: string;
+  discordUserId: string;
+  isDiscord: boolean;
 }) => {
   try {
     const quiz = await prisma.quiz.findUnique({
@@ -556,8 +713,35 @@ export const updateQuizDbToStart = async ({
     });
 
     if (!quiz) throw new CustomError("Quiz not found", 404);
-    if (quiz.creatorId !== user) {
-      throw new CustomError("You are not authorized to update this quiz", 403);
+
+    if (isDiscord) {
+      const discordUser = await prisma.userDiscord.findUnique({
+        where: {
+          discordId: discordUserId,
+        },
+      });
+
+      if (!discordUser) {
+        throw new CustomError("Discord user not found", 404);
+      }
+
+      if (discordUser?.userId !== quiz.creatorId) {
+        throw new CustomError(
+          "You are not authorized to update this quiz",
+          403
+        );
+      }
+    } else {
+      if (quiz.creatorId !== user) {
+        throw new CustomError(
+          "You are not authorized to update this quiz",
+          403
+        );
+      }
+    }
+
+    if (quiz.status === "STARTED") {
+      throw new CustomError("Quiz is already started", 400);
     }
 
     if (quiz.status !== "LIVE") {
@@ -881,9 +1065,7 @@ export const getQuizQuestions = async ({
 
 export const generateQuizQuestionAiDb = async ({
   quizId,
-  // creatorId,
   user,
-  // questionCount,
   quizTopic,
   quizDescription,
 }: generateAiQuestion) => {
@@ -914,12 +1096,20 @@ export const generateQuizQuestionAiDb = async ({
     }
     const questionCount = 11 - newIndex;
 
+    const model = process.env.OPEN_ROUTER_MODEL;
+    if (!model) {
+      throw new CustomError("Model not found", 500);
+    }
+
     const completion = await openai.chat.completions.create({
-      model: "meta-llama/llama-4-maverick:free",
+      model: model,
       messages: [
         {
           role: "user",
-          content: `Generate ${questionCount} questions for a quiz on the topic of ${quizTopic}. Description: ${quizDescription} and the indexing for the question should start from ${newIndex}`,
+          content: `Generate ${questionCount} questions for a quiz on the topic of ${quizTopic}. Description: ${quizDescription} and the indexing for the question should start from ${newIndex}
+          
+          **AND MAKEW SURE THAT THE RESPONSE IS IN A VALID JSON FORMAT, NO EXTRA STRING,SPACES, GAPS**
+          `,
         },
       ],
       response_format: {
@@ -976,13 +1166,21 @@ export const generateQuizQuestionAiDb = async ({
       },
     });
 
+    console.log("AI Completion:", completion);
+
     if (!completion?.choices[0]?.message?.content) {
-      throw new CustomError("Failed to generate questions", 500);
+      throw new CustomError("Failed to generate questions 1", 500);
     }
 
     const result = JSON.parse(completion?.choices[0]?.message?.content);
     if (!Array.isArray(result)) {
-      throw new CustomError("Failed to generate questions", 500);
+      throw new CustomError("Failed to generate questions 2", 500);
+    }
+
+    console.log("Generated questions:", result);
+
+    if (result.length === 0) {
+      throw new CustomError("No questions generated", 500);
     }
 
     const dataToInsert = result.map((question: Question) => {
@@ -1010,7 +1208,6 @@ export const generateQuizQuestionAiDb = async ({
 
     return questions;
   } catch (error) {
-    console.log("ERRRRRURR:::::", error);
     if (error instanceof CustomError) {
       throw error;
     }
@@ -1031,6 +1228,10 @@ export const joinQuizdb = async ({
       where: {
         id: quizId,
       },
+      include: {
+        reward: true,
+        participants: true,
+      },
     });
 
     if (!quiz) throw new CustomError("Quiz not found", 404);
@@ -1040,6 +1241,10 @@ export const joinQuizdb = async ({
 
     if (quiz.status === "ENDED") {
       throw new CustomError("Quiz has already ended", 400);
+    }
+
+    if (quiz.participants.length + 1 === quiz.maxParticipants) {
+      throw new CustomError("Quiz is full - maximum participants reached", 400);
     }
 
     const participant = await prisma.participant.findUnique({
@@ -1066,6 +1271,7 @@ export const joinQuizdb = async ({
           reconnected: true,
           isQuizStarted: false,
           timePerQuestion: quiz.timePerQuestion,
+          reward: quiz.reward,
         };
       } else if (quiz.status === "STARTED") {
         return {
@@ -1073,6 +1279,7 @@ export const joinQuizdb = async ({
           reconnected: true,
           isQuizStarted: true,
           timePerQuestion: quiz.timePerQuestion,
+          reward: quiz.reward,
         };
       } else {
         throw new CustomError("Quiz is not in a valid state to join", 400);
@@ -1094,6 +1301,7 @@ export const joinQuizdb = async ({
         reconnected: false,
         isQuizStarted: false,
         timePerQuestion: quiz.timePerQuestion,
+        reward: quiz.reward,
       };
     }
   } catch (error) {
@@ -1445,4 +1653,219 @@ export const banAndRemoveParticipantDb = async ({
     }
     throw new CustomError("Failed to ban participant", 500);
   }
+};
+
+export const getUserDashboardAnalyticsDb = async (user: string) => {
+  // Top 3 cards ---
+  //total quizzes
+  //total participants for the quizzes created
+  //Avg participants per quiz - totalParticipants / totalQuizzes
+
+  //Line chart-----
+  //total participants over time for the last 30 days divided into 4 weeks
+
+  //last 3 quizzes created(recent quizzes)-----
+  // data: quizname, created, total participants, status
+
+  //user profile card----
+  // user name, email, total quizzes participated,
+
+  // user recent activity(last 4 quizzes participated)-----
+  // data: quiz name. score
+
+  try {
+    const userDb = await prisma.user.findUnique({
+      where: {
+        id: user,
+      },
+      include: {
+        quizCreated: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          select: {
+            title: true,
+            id: true,
+            createdAt: true,
+            totalParticipants: true,
+            status: true,
+          },
+        },
+        quizParticipated: {
+          orderBy: {
+            joinedAt: "desc",
+          },
+          select: {
+            quiz: {
+              select: {
+                id: true,
+                title: true,
+                questions: true,
+              },
+            },
+            result: {
+              select: {
+                participantId: true,
+                score: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!userDb) {
+      throw new CustomError("User not found", 404);
+    }
+
+    //Top 3 cards
+    const totalQuizzesCreated = userDb.quizCreated.length;
+    const totalParticipantsAcrossQuizzes = userDb.quizCreated.reduce(
+      (acc, quiz) => {
+        return acc + quiz.totalParticipants;
+      },
+      0
+    );
+    const avgParticipantsPerQuiz =
+      totalParticipantsAcrossQuizzes / totalQuizzesCreated;
+
+    //Line chart
+    const quizzes = userDb.quizCreated;
+    const now = new Date();
+    const startDate = startOfDay(subDays(now, 27));
+
+    // Create 4 non-overlapping weekly buckets (ending today)
+    const weeklyBuckets = Array(4)
+      .fill(null)
+      .map((_, i) => {
+        const end = startOfDay(subDays(now, i * 7));
+        const start = startOfDay(subDays(end, 6)); // 7-day range
+
+        return {
+          label: `${start.toLocaleDateString()} – ${end.toLocaleDateString()}`,
+          start,
+          end,
+          participants: 0,
+        };
+      })
+      .reverse(); // So week 1 is oldest, week 4 is most recent
+
+    // Filter quizzes created in the last 28 days
+    const recentQuizzes = quizzes.filter(
+      (quiz) => new Date(quiz.createdAt) >= startDate
+    );
+
+    // Add quizzes to the appropriate bucket
+    for (const quiz of recentQuizzes) {
+      const quizDate = startOfDay(new Date(quiz.createdAt));
+
+      for (const bucket of weeklyBuckets) {
+        if (quizDate >= bucket.start && quizDate <= bucket.end) {
+          bucket.participants += quiz.totalParticipants || 0;
+          break;
+        }
+      }
+    }
+
+    // Prepare chart data
+    const chartData = weeklyBuckets.map((bucket) => ({
+      week: bucket.label,
+      participants: bucket.participants,
+    }));
+
+    //recebnt quizzes created(last 3 quizzes created)
+    const recentLast3QuizzesCreated = userDb.quizCreated.slice(0, 3);
+
+    //user profile card
+    const userProfileCard = {
+      name: userDb.name,
+      email: userDb.email,
+      totalQuizzesParticipated: userDb.quizParticipated.length,
+    };
+
+    //user recent activity
+
+    const userRecentActivity = userDb.quizParticipated
+      .slice(0, 4)
+      .map((quiz) => {
+        return {
+          quizName: quiz.quiz.title,
+          score: quiz?.result?.score || "NA",
+          totalQuestions: quiz.quiz.questions.length,
+          quizId: quiz.quiz.id,
+        };
+      });
+
+    return {
+      top3Cards: {
+        totalQuizzesCreated,
+        totalParticipantsAcrossQuizzes,
+        avgParticipantsPerQuiz,
+      },
+      lineChart: [...chartData],
+      recent3QuizzesCreated: [...recentLast3QuizzesCreated],
+      userProfileCard: { ...userProfileCard },
+      userRecentActivity: [...userRecentActivity],
+    };
+  } catch (error) {
+    if (error instanceof CustomError) {
+      throw error;
+    }
+    throw new CustomError("Failed to fetch user dashboard analytics", 500);
+  }
+};
+
+export const handleLeaveQuiz = async ({
+  user,
+  quizId,
+}: {
+  user: string;
+  quizId: string;
+}) => {
+  const quiz = await prisma.quiz.findUnique({
+    where: {
+      id: quizId,
+    },
+  });
+
+  console.log(quiz);
+
+  if (!quiz) {
+    throw new CustomError("Quiz not found", 404);
+  }
+
+  const participant = await prisma.participant.findUnique({
+    where: {
+      userId_quizId: {
+        userId: user,
+        quizId,
+      },
+    },
+  });
+
+  console.log(participant);
+
+  if (!participant) {
+    throw new CustomError("Participant not found", 404);
+  }
+
+  if (participant.isBanned) {
+    throw new CustomError("You are banned from this quiz", 403);
+  }
+
+  if (quiz.status === "LIVE") {
+    const deletedParticipant = await prisma.participant.delete({
+      where: {
+        id: participant.id,
+      },
+    });
+
+    return deletedParticipant;
+  }
+
+  if (quiz.status === "STARTED") {
+    throw new CustomError("You cannot leave the quiz that has started", 400);
+  }
+
+  throw new CustomError("You cannot leave the quiz that is not live", 400);
 };
