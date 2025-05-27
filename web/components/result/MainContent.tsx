@@ -1,6 +1,6 @@
 import React from "react";
 import ParticipantResult from "./ParticipantResult";
-import CreatorResult from "./CreatorResult";
+import CreatorResult from "./Creator/CreatorResult";
 
 function MainContent({
   title,
@@ -11,6 +11,7 @@ function MainContent({
   scoreDistributionGraph,
   questions,
   totalParticipants,
+  quizId,
 }: {
   totalParticipants: number;
   title: string;
@@ -26,6 +27,7 @@ function MainContent({
     score: number;
     rank: number;
   }[];
+  quizId: string;
   avgScore: number;
   lowestScore: number;
   scoreDistributionGraph: {
@@ -58,6 +60,7 @@ function MainContent({
           questions={questions}
           results={results}
           totalParticipants={totalParticipants}
+          quizId={quizId}
         />
       )}
     </div>

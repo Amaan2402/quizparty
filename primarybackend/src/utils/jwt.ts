@@ -3,14 +3,22 @@ import jwt from "jsonwebtoken";
 export const generateToken = ({
   userId,
   email,
+  expiresIn = "7d",
+  secret,
 }: {
   userId: string;
   email: string;
+  expiresIn?: jwt.SignOptions["expiresIn"];
+  secret?: string;
 }) => {
-  if (process.env.JWT_SECRET) {
-    console.log("Generating token for user:", process.env.JWT_SECRET);
-    const token = jwt.sign({ userId, email }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
+  const secretKey = secret || process.env.JWT_SECRET;
+  if (!secretKey) {
+    throw new Error("JWT secret is not defined");
+  }
+  if (secretKey) {
+    console.log("Generating token for user:", secretKey);
+    const token = jwt.sign({ userId, email }, secretKey, {
+      expiresIn,
       algorithm: "HS256",
     });
     console.log("Token generated:", token);
@@ -20,10 +28,11 @@ export const generateToken = ({
   throw new Error("Error generating token: JWT_SECRET is not defined");
 };
 
-export const verifyToken = (token: string) => {
-  if (process.env.JWT_SECRET) {
+export const verifyToken = (token: string, secret?: string) => {
+  const secretKey = secret || process.env.JWT_SECRET;
+  if (secretKey) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, secretKey);
 
       if (typeof decoded === "object" && decoded !== null) {
         return {

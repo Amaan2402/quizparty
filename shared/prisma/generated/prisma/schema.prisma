@@ -1,0 +1,177 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:mypassword@localhost:5433/myquizdb?schema=public"
+}
+
+model Answer {
+  id              String        @id @default(uuid())
+  participantId   String
+  questionId      String
+  isAnswerCorrect Boolean?
+  createdAt       DateTime      @default(now())
+  selectedOption  Int
+  Participant     Participant   @relation(fields: [participantId], references: [id])
+  Question        Question      @relation(fields: [questionId], references: [id])
+  AnswerOutbox    AnswerOutbox?
+
+  @@unique([participantId, questionId])
+}
+
+model AnswerOutbox {
+  id       String @id @default(uuid())
+  answerId String @unique
+  Answer   Answer @relation(fields: [answerId], references: [id])
+}
+
+model Participant {
+  id                String             @id @default(uuid())
+  userId            String
+  quizId            String
+  joinedAt          DateTime           @default(now())
+  isConnected       Boolean            @default(false)
+  isBanned          Boolean            @default(false)
+  Answer            Answer[]
+  Quiz              Quiz               @relation(fields: [quizId], references: [id])
+  User              User               @relation(fields: [userId], references: [id])
+  ParticipantResult ParticipantResult?
+
+  @@unique([userId, quizId])
+}
+
+model ParticipantResult {
+  id            String      @id @default(uuid())
+  participantId String      @unique
+  quizId        String
+  score         Int
+  rank          Int
+  createdAt     DateTime    @default(now())
+  Participant   Participant @relation(fields: [participantId], references: [id])
+  Quiz          Quiz        @relation(fields: [quizId], references: [id])
+
+  @@unique([participantId, quizId])
+}
+
+model Question {
+  id                      String   @id @default(uuid())
+  questionText            String
+  questionIndex           Int
+  options                 Json
+  quizId                  String
+  creatorId               String
+  correctOption           Int
+  CorrectAnswerPercentage Float    @default(0)
+  Answer                  Answer[]
+  User                    User     @relation(fields: [creatorId], references: [id])
+  Quiz                    Quiz     @relation(fields: [quizId], references: [id])
+
+  @@unique([quizId, questionIndex])
+  @@unique([quizId, questionText])
+}
+
+model Quiz {
+  id                   String              @id @default(uuid())
+  creatorId            String
+  title                String
+  description          String?
+  status               QuizStatus          @default(CREATED)
+  currentQuestionIndex Int
+  timePerQuestion      Int
+  createdAt            DateTime            @default(now())
+  maxParticipants      Int                 @default(0)
+  totalParticipants    Int                 @default(0)
+  isResultCalculated   Boolean             @default(false)
+  avgScore             Int                 @default(0)
+  lowestScore          Int                 @default(0)
+  resultSentViaMail    Boolean             @default(false)
+  startedAt            DateTime            @default(now())
+  endedAt              DateTime            @default(now())
+  Participant          Participant[]
+  ParticipantResult    ParticipantResult[]
+  Question             Question[]
+  User                 User                @relation(fields: [creatorId], references: [id])
+  QuizResultQueue      QuizResultQueue[]
+  Reward               Reward?
+  ScoreDistribution    ScoreDistribution[]
+}
+
+model QuizResultQueue {
+  id                    String                 @id @default(uuid())
+  quizId                String
+  Quiz                  Quiz                   @relation(fields: [quizId], references: [id])
+  QuizResultQueueOutbox QuizResultQueueOutbox?
+}
+
+model QuizResultQueueOutbox {
+  id                String          @id @default(uuid())
+  quizResultQueueId String          @unique
+  QuizResultQueue   QuizResultQueue @relation(fields: [quizResultQueueId], references: [id])
+}
+
+model Reward {
+  id          String       @id @default(uuid())
+  quizId      String       @unique
+  brand       RewardBrands
+  voucherCode String
+  Quiz        Quiz         @relation(fields: [quizId], references: [id])
+}
+
+model ScoreDistribution {
+  id     String @id @default(uuid())
+  quizId String
+  count  Int
+  label  String
+  Quiz   Quiz   @relation(fields: [quizId], references: [id])
+
+  @@unique([quizId, label])
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  password     String
+  mailVerified Boolean       @default(false)
+  Participant  Participant[]
+  Question     Question[]
+  Quiz         Quiz[]
+  UserDiscord  UserDiscord?
+}
+
+model UserDiscord {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  discordId            String   @unique
+  discordUsername      String   @unique
+  discordDiscriminator String
+  accessToken          String
+  refreshToken         String
+  connectedAt          DateTime @default(now())
+  User                 User     @relation(fields: [userId], references: [id])
+}
+
+enum QuizStatus {
+  CREATED
+  LIVE
+  STARTED
+  ENDED
+}
+
+enum RewardBrands {
+  amazon
+  flipkart
+  myntra
+  ajio
+  swiggy
+  zomato
+}

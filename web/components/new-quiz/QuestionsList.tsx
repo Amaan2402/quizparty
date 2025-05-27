@@ -1,6 +1,6 @@
 import { useQuestionModalStore } from "@/store/useQuestionModalStore";
 import { useQuestionStore } from "@/store/useQuestionStore";
-import { deleteQuizQuestion } from "@/utils/quiz";
+import { deleteQuizQuestion } from "@/utils/question";
 import {
   faGrip,
   faLayerGroup,
@@ -37,7 +37,7 @@ function QuestionsList() {
 
   return (
     <div
-      className="bg-[#23256b] border-b-6 border-[#4549aa] w-full overflow-y-auto rounded-lg shadow-2xl hide-scrollbar"
+      className="bg-[#23256b] mb-5 border-b-6 border-[#4549aa] w-full overflow-y-auto rounded-lg shadow-2xl hide-scrollbar"
       style={{ maxHeight: "410px" }}
     >
       <div className="sticky top-0 w-full bg-[#2d2d7f] p-4 flex justify-between items-center ">
@@ -76,7 +76,10 @@ function QuestionsList() {
               />
               <button
                 className="cursor-pointer"
-                onClick={() => handleDeleteQuestion(id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteQuestion(id);
+                }}
                 disabled={isDeleteButtonDisabled}
               >
                 <FontAwesomeIcon icon={faTrash} color="#9ea0e6" />

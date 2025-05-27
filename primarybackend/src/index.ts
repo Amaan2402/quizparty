@@ -1,4 +1,5 @@
-import { configDotenv } from "dotenv";
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import { createServer } from "http";
 import { Request, Response, NextFunction } from "express";
@@ -12,11 +13,16 @@ import discordRouter from "./router/discord";
 import { initialiseSocket } from "./socket";
 import cors from "cors";
 import { handleResetParticipantConnectionStatus } from "./utils/socket";
-
-configDotenv();
+import rateLimit from "express-rate-limit";
+import { questionRouter } from "./router/question";
+import { quizStatusRouter } from "./router/quizStatus";
+import { participantRouter } from "./router/participant";
+import { resultRouter } from "./router/result";
 
 const app = express();
 const PORT = 3005;
+
+console.log("Environment Variables:", process.env.OPEN_ROUTER_DEEP_SEEK_API);
 
 try {
   handleResetParticipantConnectionStatus();
@@ -35,19 +41,25 @@ app.use(
   })
 );
 
+const limiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  limit: 50, // Limit each IP to 50 requests per `window` (here, per 5 minutes).
+});
+
+app.use(limiter);
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(authMiddleware);
 
-app.get("/api/test", (req, res) => {
-  console.log("Test request received");
-  console.log("Test cookies:", req.cookies);
-  console.log("Test complete");
-  res.send("Test done");
-});
 app.use("/api/auth", authRouter);
 app.use("/api/quiz", quizRouter);
+app.use("/api/quiz/question", questionRouter);
+app.use("/api/quiz/status", quizStatusRouter);
+app.use("/api/quiz/participant", participantRouter);
+app.use("/api/quiz/results", resultRouter);
+
 app.use("/api/auth/discord", discordRouter);
 
 app.get("/", (req: Request, res: Response) => {

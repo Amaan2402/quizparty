@@ -9,6 +9,7 @@ function Dashboard({
   lowestScore,
   scoreDistributionGraph,
   results,
+  quizId,
 }: {
   results: {
     participantId: string;
@@ -18,6 +19,7 @@ function Dashboard({
     score: number;
     rank: number;
   }[];
+  quizId: string;
   totalParticipants: number;
   questions: {
     id: string;
@@ -39,7 +41,7 @@ function Dashboard({
   }[];
 }) {
   return (
-    <div className="flex gap-10 mt-5">
+    <div className="flex flex-col md:flex-row md:gap-10 mt-5">
       <StatsDashBoard
         questions={questions}
         totalParticipants={totalParticipants}
@@ -47,7 +49,7 @@ function Dashboard({
         lowestScore={lowestScore}
         scoreDistributionGraph={scoreDistributionGraph}
       />
-      <RightSideBar results={results} />
+      <RightSideBar results={results} quizId={quizId} />
     </div>
   );
 }

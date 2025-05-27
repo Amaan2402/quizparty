@@ -1,5 +1,5 @@
 import { useQuestionStore } from "@/store/useQuestionStore";
-import { generateAndGetAiQuestions } from "@/utils/quiz";
+import { generateAndGetAiQuestions } from "@/utils/question";
 import { faRobot } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
@@ -69,7 +69,7 @@ function AiQuestion({ quizId }: { quizId: string }) {
       </div>
 
       <button
-        className="bg-[#008000] mt-3 w-4/12 px-2 py-[2px] font-medium rounded-md"
+        className="bg-[#008000] mt-3 px-2 py-[2px] font-medium rounded-md"
         onClick={handleGenerateAndGetAiQuestions}
         disabled={isGenerateButtonDisabled}
       >

@@ -44,7 +44,7 @@ function ChangePassword() {
     });
   };
   return (
-    <div className="mt-5 bg-[#252474] w-4/12 p-2 rounded-lg">
+    <div className="mt-5 bg-[#252474] w-full sm:w-8/12 md:w-5/12 p-2 rounded-lg">
       <div className="mt-2">
         <label htmlFor="name" className="font-medium text-lg mb-1">
           Old password
@@ -54,7 +54,7 @@ function ChangePassword() {
           type="text"
           id="old-password"
           placeholder="Enter old password"
-          className="px-3 w-[76%] py-2 rounded  border border-[#464aba] outline-none"
+          className="px-3 w-full py-2 rounded  border border-[#464aba] outline-none"
           value={oldPassword}
           onChange={(e) => setOldPassword(e.target.value)}
         />
@@ -69,7 +69,7 @@ function ChangePassword() {
           type="text"
           id="new-password"
           placeholder="Enter new password"
-          className="px-3 w-[76%] py-2 rounded  border border-[#464aba] outline-none"
+          className="px-3 w-full py-2 rounded  border border-[#464aba] outline-none"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
         />

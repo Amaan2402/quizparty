@@ -2,10 +2,9 @@ import { Request, Response } from "express";
 import { CustomError } from "../utils/CustomError";
 import axios from "axios";
 import { getUser } from "../utils/getUser";
-import { prisma } from "../utils/db";
+import { prisma } from "@amaan2202/prisma-client";
 
 export const discordCallback = async (req: Request, res: Response) => {
-  console.log("discordCallback called");
   const code = req.query.code;
 
   if (!code) {
@@ -13,6 +12,16 @@ export const discordCallback = async (req: Request, res: Response) => {
   }
 
   const user: any = getUser(req);
+
+  const isDiscordUserConnected = await prisma.userDiscord.findUnique({
+    where: { userId: user },
+  });
+
+  if (isDiscordUserConnected) {
+    return res.status(400).json({
+      error: "Discord account already connected. Please disconnect first.",
+    });
+  }
 
   const params = new URLSearchParams();
   if (
@@ -53,6 +62,15 @@ export const discordCallback = async (req: Request, res: Response) => {
   });
 
   const discordUser = userResponse.data; // This contains user's Discord ID, username, discriminator etc.
+
+  const isDiscordUserAlreadyConnected = await prisma.userDiscord.findUnique({
+    where: { discordId: discordUser.id },
+  });
+  if (isDiscordUserAlreadyConnected) {
+    return res.status(400).json({
+      error: "Discord account already connected to another user.",
+    });
+  }
 
   const discordUserDb = await prisma.userDiscord.upsert({
     where: { userId: user },

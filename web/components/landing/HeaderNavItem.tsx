@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 function HeaderNavItem({
   title,
@@ -14,9 +17,19 @@ function HeaderNavItem({
       <button
         className={`${
           showBg
-            ? "bg-[#232270] hover:bg-[#1e1d6b] px-6 rounded-md py-1"
-            : "hover:font-medium w-[100px] "
+            ? "bg-[#232270] hover:bg-[#1e1d6b] px-2 md:px-6 rounded-md py-1"
+            : "hover:font-medium "
         } cursor-pointer text-base text-white outline-none`}
+        onClick={() => {
+          if (title === "Pricing") {
+            toast(
+              "Coming soon!, till then enjoy the services we have to offer for free",
+              {
+                icon: "🎉",
+              }
+            );
+          }
+        }}
       >
         {title}
       </button>

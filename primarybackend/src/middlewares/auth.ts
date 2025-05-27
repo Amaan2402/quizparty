@@ -23,6 +23,8 @@ export const authMiddleware = (
   const paths = [
     "/api/auth/login",
     "/api/auth/register",
+    "/api/auth/request-password-reset",
+    "/api/auth/reset-password",
     "/socket.io",
     "/api/quiz/discord",
   ];

@@ -1,7 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+// import "dotenv/config"; // must come before importing prisma
+
+import { prisma } from "@amaan2202/prisma-client";
 import { createClient } from "redis";
 
-const prisma = new PrismaClient();
 const redis = createClient();
 
 const ANSWER_SUBMISSION_QUEUE = "answer-submission-queue";

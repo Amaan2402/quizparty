@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { handleCreateUser, handleLoginUser } from "../../utils/auth";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 function Auth({ type }: { type: "LOGIN" | "REGISTER" }) {
   const [name, setName] = useState("");
@@ -11,14 +11,16 @@ function Auth({ type }: { type: "LOGIN" | "REGISTER" }) {
   const [password, setPassword] = useState("");
   const [buttonDisabled, setButtonDisabled] = useState(false);
 
-  const router = useRouter();
-
   const handleUserSignUp = async () => {
     const res = handleCreateUser({ name, email, password });
     toast.promise(res, {
       loading: "Creating user...",
       success: (data) => {
         console.log("User created successfully", data);
+        setName("");
+        setEmail("");
+        setPassword("");
+        window.location.href = "/auth/signin";
         return `User created successfully! ${data?.message}`;
       },
       error: (err) => {
@@ -33,7 +35,10 @@ function Auth({ type }: { type: "LOGIN" | "REGISTER" }) {
       loading: "Logging in...",
       success: (data) => {
         console.log("User logged in successfully", data);
-        router.push("/dashboard");
+        setName("");
+        setEmail("");
+        setPassword("");
+        window.location.href = "/dashboard";
         return `User logged in successfully! ${data?.message}`;
       },
       error: (err) => {
@@ -54,7 +59,7 @@ function Auth({ type }: { type: "LOGIN" | "REGISTER" }) {
 
   return (
     <div className="w-full max-w-[400px]">
-      <h1 className="text-8xl mb-10 text-white font-bold">
+      <h1 className="lg:text-8xl text-4xl lg:mb-10 mb-3 text-white font-bold">
         {type === "LOGIN" ? "Log in" : "Sign up"}
       </h1>
 
@@ -83,9 +88,11 @@ function Auth({ type }: { type: "LOGIN" | "REGISTER" }) {
           className="border-none h-14 text-xl outline-none border-gray-300 rounded-md p-2 px-4 mb-4 w-full bg-[#252c80] text-gray-200 focus:ring-1 focus:ring-[#6969c6]"
         />
         {type === "LOGIN" && (
-          <p className="text-right mb-2 font-semibold text-white">
-            Forgot password??
-          </p>
+          <Link href="/auth/reset-password">
+            <p className="text-right mb-2 font-semibold text-white">
+              Forgot password??
+            </p>
+          </Link>
         )}
         <button
           className={`${

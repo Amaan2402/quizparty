@@ -38,7 +38,7 @@ function QuizQuestion({
   handleSetSelectedOptionIndex: (index: number) => void;
 }) {
   return (
-    <div className="w-8/12 bg-[#2b3294] rounded-lg p-5 px-20">
+    <div className="md:w-8/12 bg-[#2b3294] mt-5 rounded-lg py-2 px-3 md:px-20">
       <div className="max-h-42 mb-5">
         <h1 className="text-white text-xl font-medium">
           {question?.questionText}

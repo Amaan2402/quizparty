@@ -1,9 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@amaan2202/prisma-client";
 import { createClient } from "redis";
 
 const redisSubmission = createClient(); // one connection for submissions
 const redisResult = createClient(); // one connection for results
-const prisma = new PrismaClient();
 
 const ANSWER_SUBMISSION_QUEUE = "answer-submission-queue";
 const RESULT_QUEUE = "result-queue";
@@ -65,7 +64,7 @@ async function processSubmissionsQueue(submission: {
     console.log("Processing submission:", submission);
     const submissionData = await prisma.answer.findUnique({
       where: { id: submission.answerId },
-      include: { question: true },
+      include: { Question: true },
     });
 
     if (!submissionData) {
@@ -74,7 +73,7 @@ async function processSubmissionsQueue(submission: {
     }
 
     const isAnswerCorrect =
-      submissionData.selectedOption === submissionData.question.correctOption;
+      submissionData.selectedOption === submissionData.Question.correctOption;
 
     await prisma.answer.update({
       where: { id: submission.answerId },
@@ -100,12 +99,12 @@ async function processResultQueue(data: {
     const quizresultQueueData = await prisma.quizResultQueue.findUnique({
       where: { id: data.quizResultQueueId },
       include: {
-        quiz: {
+        Quiz: {
           include: {
-            participants: {
-              include: { answers: true },
+            Participant: {
+              include: { Answer: true },
             },
-            questions: true,
+            Question: true,
           },
         },
       },
@@ -116,11 +115,11 @@ async function processResultQueue(data: {
       return;
     }
 
-    const participantsScores = quizresultQueueData.quiz.participants.map(
+    const participantsScores = quizresultQueueData.Quiz.Participant.map(
       (p) => ({
         participantId: p.id,
-        quizId: quizresultQueueData.quiz.id,
-        score: p.answers.reduce(
+        quizId: quizresultQueueData.Quiz.id,
+        score: p.Answer.reduce(
           (acc, answer) => acc + (answer.isAnswerCorrect ? 1 : 0),
           0
         ),
@@ -139,7 +138,7 @@ async function processResultQueue(data: {
       skipDuplicates: true,
     });
 
-    console.log("QUIZ ID", quizresultQueueData.quiz.id);
+    console.log("QUIZ ID", quizresultQueueData.Quiz.id);
 
     //Logic for calculating average score
     const sumOfScores = participantsScores.reduce((acc, participant) => {
@@ -155,7 +154,7 @@ async function processResultQueue(data: {
 
     await prisma.quiz.update({
       where: {
-        id: quizresultQueueData.quiz.id,
+        id: quizresultQueueData.Quiz.id,
       },
       data: {
         isResultCalculated: true,
@@ -166,19 +165,19 @@ async function processResultQueue(data: {
 
     //Logic for Score distriubution graph
 
-    const questionsLength = quizresultQueueData.quiz.questions.length;
+    const questionsLength = quizresultQueueData.Quiz.Question.length;
 
     const buckets = generateBucket(questionsLength);
     const bucketCounts = countParticipantsInBuckets({
       participants: sortedWithRanksParticipantResults,
       buckets,
-      quizId: quizresultQueueData.quiz.id,
+      quizId: quizresultQueueData.Quiz.id,
     });
 
     console.log("BUCKET COUNTS", bucketCounts);
 
     await prisma.scoreDistribution.deleteMany({
-      where: { quizId: quizresultQueueData.quiz.id },
+      where: { quizId: quizresultQueueData.Quiz.id },
     });
 
     await prisma.scoreDistribution.createMany({
@@ -188,7 +187,7 @@ async function processResultQueue(data: {
     // logic for correctAnswerPercentage for each question
     const questions = await prisma.question.findMany({
       where: {
-        quizId: quizresultQueueData.quiz.id,
+        quizId: quizresultQueueData.Quiz.id,
       },
     });
 

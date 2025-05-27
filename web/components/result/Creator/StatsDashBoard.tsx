@@ -31,7 +31,7 @@ function StatsDashBoard({
   }[];
 }) {
   return (
-    <div className="w-8/12">
+    <div className="md:w-8/12">
       <QuizStatsCard
         totalQuestions={questions.length}
         totalParticipants={totalParticipants}

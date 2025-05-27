@@ -20,6 +20,7 @@ type QuizData = {
   maxParticipants: number;
   totalParticipants: number;
   status: QuizStatus;
+  quizId: string;
 };
 
 type QuizStore = QuizData & {
@@ -39,6 +40,7 @@ export const useQuizStore = create<QuizStore>((set) => ({
   maxParticipants: 0,
   totalParticipants: 0,
   status: QuizStatus.null,
+  quizId: "",
 
   setQuizData: (data: QuizData) => {
     const {

@@ -4,7 +4,9 @@ import {
   changePasswordDb,
   createUser,
   getUserById,
+  handleRequestPasswordReset,
   loginUserDb,
+  resetPasswordDb,
   updateUserDb,
 } from "../helperfunctions/auth";
 import { getUser } from "../utils/getUser";
@@ -100,5 +102,52 @@ export const changepassword = async (req: Request, res: Response) => {
   return res.status(200).json({
     message: "Password updated successfully",
     data: updatedUser,
+  });
+};
+
+export const requestPasswordReset = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  if (!email || !email.includes("@")) {
+    return res.status(400).json({
+      message: "Invalid email address",
+    });
+  }
+
+  const requestPasswordReset = await handleRequestPasswordReset({
+    email,
+  });
+
+  return res.status(200).json({
+    message: "Password reset request sent successfully",
+    data: requestPasswordReset,
+  });
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const id = req.query.id as string;
+  const token = req.query.token as string;
+  const { password } = req.body;
+
+  if (!id || !token) {
+    return res.status(400).json({
+      message: "Invalid request",
+    });
+  }
+
+  if (!password) {
+    return res.status(400).json({
+      message: "Password is required",
+    });
+  }
+
+  const resetPasswordUpdated = await resetPasswordDb({
+    id,
+    token,
+    newPassword: password,
+  });
+
+  return res.status(200).json({
+    message: "Password reset successfully",
+    data: { ...resetPasswordUpdated },
   });
 };

@@ -15,19 +15,17 @@ function InfoCard({
   height: number;
 }) {
   return (
-    <div className="bg-[#1e1d6b] p-3 max-w-[250px] max-h-[300px] rounded-md ">
-      <div className="mb-2 min-h-36 ">
-        <Image
-          src={imageSrc}
-          alt={title}
-          width={width}
-          height={height}
-          className="rounded-md object-contain"
-        />
-      </div>
+    <div className="bg-[#1e1d6b] w-[48%] md:w-[100%] p-2 sm:p-3 md:max-w-[250px] md:max-h-[300px] rounded-md ">
+      <Image
+        src={imageSrc}
+        alt={title}
+        width={width}
+        height={height}
+        className="rounded-md object-contain h-auto w-full min-h-[100px] max-h-[100px] "
+      />
       <div>
-        <h1 className="text-lg font-semibold">{title}</h1>
-        <p>{description}</p>
+        <h1 className="text-sm sm:text-lg font-semibold">{title}</h1>
+        <p className="text-xs sm:text-base">{description}</p>
       </div>
     </div>
   );

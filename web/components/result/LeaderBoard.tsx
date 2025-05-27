@@ -11,7 +11,7 @@ type Participant = {
 
 function LeaderBoard({ results }: { results: Participant[] }) {
   return (
-    <div className="bg-[#252474] rounded-md text-white max-h-[380px] overflow-auto hide-scrollbar border-b-10 border-b-[#3f3faf]">
+    <div className="bg-[#252474]  rounded-md text-white max-h-[380px] overflow-auto hide-scrollbar border-b-10 border-b-[#3f3faf]">
       <table className="w-full text-left">
         <thead className="sticky top-0">
           <tr className="bg-[#3f3faf]">

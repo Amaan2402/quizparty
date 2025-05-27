@@ -1,5 +1,5 @@
 import { useDeleteModalStore } from "@/store/useDeleteModalStore";
-import { startQuiz } from "@/utils/quiz";
+import { startQuiz } from "@/utils/quizStatus";
 import { faCopy, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
@@ -46,10 +46,10 @@ function StartQuizLinks({
   };
 
   return (
-    <div className="w-4/12 p-2 text-white">
+    <div className="md:w-4/12 p-2 text-white mt-5 md:mt-0">
       <div>
         <button
-          className="bg-[#2c4cee] w-full font-semibold text-2xl py-1 rounded-md"
+          className="bg-[#2c4cee] w-full font-semibold text-lg md:text-2xl py-1 rounded-md"
           onClick={handleStartQuiz}
         >
           Start Quiz

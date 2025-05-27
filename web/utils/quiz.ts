@@ -67,7 +67,6 @@ export const editQuiz = async ({
   };
   quizId: string;
 }) => {
-  console.log("HELPER HERE WITH QUIZID", quizId);
   const response = await api.patch(`/quiz/${quizId}`, {
     QuizFieldsToUpdate,
     RewardFieldsToUpdate,
@@ -81,77 +80,6 @@ export const deleteQuiz = async (quizId: string) => {
   return response.data;
 };
 
-export const getQuizQuestions = async (quizId: string) => {
-  const response = await api.get(`/quiz/question/${quizId}/all`);
-  return response.data;
-};
-
-export const createQuizQuestion = async ({
-  questionText,
-  options,
-  correctOption,
-  quizId,
-}: {
-  questionText: string;
-  options: { index: number; text: string }[];
-  correctOption: number;
-  quizId: string;
-}) => {
-  const response = await api.post("/quiz/question", {
-    quizId,
-    questionText,
-    options,
-    correctOption,
-  });
-
-  return response.data;
-};
-
-export const editQuizQuestion = async ({
-  questionId,
-  questionUpdateFields,
-}: {
-  questionUpdateFields: {
-    questionText?: string;
-    options?: {
-      index: number;
-      text: string;
-    }[];
-    correctOption?: number;
-  };
-  questionId: string;
-}) => {
-  const response = await api.patch(`/quiz/question/${questionId}`, {
-    questionUpdateFields,
-  });
-
-  return response.data;
-};
-
-export const deleteQuizQuestion = async (questionId: string) => {
-  const response = await api.delete(`/quiz/question/${questionId}`);
-  console.log(response.data);
-  return response.data;
-};
-
-export const generateAndGetAiQuestions = async ({
-  quizId,
-  topic,
-  description,
-}: {
-  quizId: string;
-  topic: string;
-  description: string;
-}) => {
-  const response = await api.post("/quiz/question/ai", {
-    quizId,
-    quizTopic: topic,
-    quizDescription: description,
-  });
-
-  return response.data;
-};
-
 export const getMyQuizzes = async (token: string) => {
   console.log("TOKEN IN QUIZ", token);
   const response = await api.get("/quiz/my-quizzes", {
@@ -159,75 +87,6 @@ export const getMyQuizzes = async (token: string) => {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data;
-};
-
-export const joinQuiz = async (quizId: string) => {
-  const response = await api.post(`/quiz/join/${quizId}`);
-  return response.data;
-};
-
-export const startQuiz = async (quizId: string) => {
-  const response = await api.patch(`/quiz/start/${quizId}`);
-  return response.data;
-};
-
-export const submitAnswer = async ({
-  questionId,
-  selectedOption,
-}: {
-  questionId: string;
-  selectedOption: number;
-}) => {
-  const response = await api.post(`/quiz/answer/${questionId}`, {
-    selectedOption,
-  });
-
-  return response.data;
-};
-
-export const removeAndBanParticipant = async ({
-  quizId,
-  participantId,
-}: {
-  quizId: string;
-  participantId: string;
-}) => {
-  const response = await api.delete(`/quiz/ban/${quizId}`, {
-    data: {
-      participantId,
-    },
-  });
-
-  return response.data;
-};
-
-export const longPollResults = async (quizId: string, signal: AbortSignal) => {
-  try {
-    const response = await api.get(`/quiz/${quizId}/result`, {
-      signal,
-    });
-    console.log("RESULTS AXIOS", response.data);
-    return {
-      ...response.data,
-      status: response.status,
-    };
-  } catch (error) {
-    return error;
-  }
-};
-
-export const fetchUserdashboardData = async () => {
-  const response = await api.get("/quiz/dashboard/analytics");
-  return response.data;
-};
-
-export const updateQuizToLive = async (quizId: string) => {
-  const response = await api.patch(`/quiz/live/${quizId}`);
-  return response.data;
-};
-
-export const leaveQuiz = async (quizId: string) => {
-  const response = await api.delete(`/quiz/leave/${quizId}`);
+  console.log(response);
   return response.data;
 };

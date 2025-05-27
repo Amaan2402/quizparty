@@ -4,7 +4,6 @@ export const handleCreateMessage = (message: any) => {
   const args = message.content.slice(prefix.length).trim().split(/ +/);
   const command = (args.shift() ?? "").toLowerCase();
   console.log(command);
-  // Feel free name yours whatever you'd like
   if (command === "pingquiz") {
     message.channel.send("pinging ponging ponging QUIZZING QUIZZING");
   }

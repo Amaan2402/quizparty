@@ -182,3 +182,21 @@
     --chart-5: 340 75% 55%;
   }
 }
+
+@media (min-width: 370px) and (max-width: 450px) {
+  .responsive-width {
+    width: 50%;
+  }
+}
+
+@media (min-width: 450px) and (max-width: 550px) {
+  .responsive-width-xxs {
+    width: 36%;
+  }
+}
+
+@media (min-width: 550px) and (max-width: 640px) {
+  .responsive-width-xs {
+    width: 40%;
+  }
+}

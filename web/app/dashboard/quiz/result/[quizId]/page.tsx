@@ -1,7 +1,7 @@
 "use client";
 
 import MainContent from "@/components/result/MainContent";
-import { longPollResults } from "@/utils/quiz";
+import { longPollResults } from "@/utils/result";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
@@ -71,7 +71,8 @@ function Page() {
 
         setLoading(false);
       } else {
-        setError("An error occurred while fetching results.");
+        console.error("Error fetching results:", data);
+        setError(data?.response?.data?.message || "Unknown error");
         setLoading(false);
       }
     };
@@ -92,7 +93,7 @@ function Page() {
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div>{error}</div>;
   }
   return (
     <MainContent
@@ -104,6 +105,7 @@ function Page() {
       scoreDistributionGraph={scoreDistributionGraph}
       questions={questions}
       totalParticipants={totalParticiopants || 0}
+      quizId={quizId as string}
     />
   );
 }

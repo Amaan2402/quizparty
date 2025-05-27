@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import QuestionTimeSideBar from "./QuestionTimeSideBar";
 import QuizQuestion from "./QuizQuestion";
-import { submitAnswer } from "@/utils/quiz";
+import { submitAnswer } from "@/utils/participant";
 
 type Question = {
   questionText: string;
@@ -52,7 +52,7 @@ function MainContent({
   }, [isQuestionChanged]);
 
   return (
-    <div className="flex px-52 mt-5">
+    <div className="flex flex-col items-center md:flex-row px-6 md:px-24 lg:px-52 mt-5">
       <QuestionTimeSideBar
         timePerQuestion={timePerQuestion}
         questionIndex={questionIndex}

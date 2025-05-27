@@ -12,17 +12,15 @@ async function Header({
   };
 }) {
   return (
-    <div className="fixed top-0 z-10 w-full px-56 pt-5 bg-[#3d3da8] h-20 shadow-sm">
-      <div className="w-full flex justify-between items-center">
+    <div className="fixed top-0 left-0 right-0 z-10 pt-4 sm:pt-5 sm:px-10 bg-[#3d3da8] h-16 md:h-20 shadow-sm">
+      <div className="flex px-2 justify-between items-center">
         <Link href={"/"}>
-          <h1 className="text-3xl font-semibold">Quiz Party</h1>
+          <h1 className="md:text-3xl font-semibold">Quiz Party</h1>
         </Link>
 
-        <div className="flex items-center gap-5">
-          <HeaderNavItem title="Home" redirectTo="/" />
-          <HeaderNavItem title="Features" redirectTo="/" />
+        <div className="flex items-center gap-10 md:gap-5 ">
+          {/* <HeaderNavItem title="Features" redirectTo="/" /> */}
           <HeaderNavItem title="Pricing" redirectTo="/" />
-          <HeaderNavItem title="Contact" redirectTo="/contact" />
           {user ? (
             <HeaderNavItem
               title="Go to dashboard"

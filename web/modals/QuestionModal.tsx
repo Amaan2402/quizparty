@@ -7,7 +7,7 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
 import QuestionInput from "@/components/new-quiz/QuestionInput";
 import { useQuestionStore } from "@/store/useQuestionStore";
-import { editQuizQuestion } from "@/utils/quiz";
+import { editQuizQuestion } from "@/utils/question";
 
 type questionUpdateFields = {
   questionText?: string;

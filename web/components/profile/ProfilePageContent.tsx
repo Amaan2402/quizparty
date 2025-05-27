@@ -51,7 +51,7 @@ function ProfilePageContent() {
     );
   }
   return (
-    <div className="p-5 px-10 text-white">
+    <div className="p-5 px-10 text-white w-full">
       <NameEmail user={user} />
       <ChangePassword />
     </div>

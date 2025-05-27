@@ -34,14 +34,13 @@ function MainContent() {
           setLoading(false);
           return null;
         },
-        error: (error) => {
-          console.log(error);
+        error: () => {
           setLoading(false);
           return null;
         },
       });
     }
-  }, []);
+  }, [code, userDiscord]);
 
   useEffect(() => {
     if (code) {
@@ -62,11 +61,11 @@ function MainContent() {
           router.push("/dashboard/automation-tools");
           return "Connected to Discord!";
         },
-        error: (error) => {
+        error: () => {
           setIsCodeAvailable(false);
           setLoading(false);
-          setError(error.response.data.message);
-          return error.response.data.message;
+          setError("Error connecting to Discord");
+          return "Error connecting to Discord";
         },
       });
     }

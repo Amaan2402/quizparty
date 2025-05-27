@@ -35,10 +35,10 @@ function MainContent({
           <FontAwesomeIcon icon={faSpinner} spinPulse color="white" size="xl" />
         </div>
       </div>
-      <div className="flex justify-between">
+      <div className="flex flex-col md:flex-row md:justify-between">
         <ParticipantsList participants={participants} quizId={quizId} />
         {isQuizStarted ? (
-          <div className="w-4/12 p-2 text-white pl-10">
+          <div className="md:w-4/12 p-2 text-white pl-10">
             <h1 className="text-white font-semibold text-xl">
               Current question
             </h1>

@@ -61,7 +61,7 @@ function NameEmail({
     });
   };
   return (
-    <div>
+    <div className="w-full sm:w-8/12 md:w-5/12 ">
       <h1 className="text-3xl font-bold  mb-5">Settings</h1>
       <div className="mt-2">
         <label htmlFor="name" className="font-medium text-lg mb-1">
@@ -72,7 +72,7 @@ function NameEmail({
           type="text"
           id="name"
           placeholder="Enter title"
-          className="px-3 w-3/12 py-2 rounded  border border-[#464aba] outline-none"
+          className="px-3 w-full py-2 rounded  border border-[#464aba] outline-none"
           value={localName}
           onChange={(e) => setLocalName(e.target.value)}
         />
@@ -87,7 +87,7 @@ function NameEmail({
           type="text"
           id="email"
           placeholder="Enter email"
-          className="px-3 w-3/12 py-2 rounded  border border-[#464aba] outline-none"
+          className="px-3 w-full py-2 rounded  border border-[#464aba] outline-none"
           value={localEmail}
           onChange={(e) => setLocalEmail(e.target.value)}
         />

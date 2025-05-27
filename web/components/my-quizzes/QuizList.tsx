@@ -51,7 +51,7 @@ export function QuizList({
   }
 
   return (
-    <div className="mt-5 flex flex-wrap gap-4">
+    <div className="mt-5 flex justify-between flex-wrap gap-4">
       {quiz.map((q) => (
         <QuizCard key={q.id} q={q} mode={mode} />
       ))}

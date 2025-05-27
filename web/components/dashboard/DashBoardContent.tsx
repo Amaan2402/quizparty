@@ -7,7 +7,7 @@ import RecentQuizTable from "./RecentQuizTable";
 import ProfileSideBar from "./ProfileSideBar";
 import RecentActivity from "./RecentActivity";
 import ProfileSideBarButtons from "./ProfileSideBarButtons";
-import { fetchUserdashboardData } from "@/utils/quiz";
+import { fetchUserdashboardData } from "@/utils/result";
 import toast from "react-hot-toast";
 
 function DashBoardContent() {
@@ -58,16 +58,16 @@ function DashBoardContent() {
   }
 
   return (
-    <div className="flex px-6">
-      <div className="p-2 w-7/12">
-        <h1 className="text-4xl text-white font-medium">
+    <div className="flex px-6 flex-col md:flex-row">
+      <div className="p-2 w-full md:w-7/12">
+        <h1 className="text-2xl md:text-4xl text-white font-medium">
           Welcome back {userProfileData?.name}
         </h1>
         <CardSection data={cardData} />
         <LineChartDashBoard data={lineChartData} />
         <RecentQuizTable data={recentQuizData} />
       </div>
-      <div className="w-5/12 p-2">
+      <div className="md:w-5/12 p-2">
         <ProfileSideBar data={userProfileData} />
         <RecentActivity data={recentActivityData} />
         <ProfileSideBarButtons />

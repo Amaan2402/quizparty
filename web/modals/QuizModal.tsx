@@ -4,6 +4,7 @@ import { useModalStore } from "@/store/useQuizModalStore";
 import { useQuizStore } from "@/store/useQuizStore";
 import { createQuiz, editQuiz } from "@/utils/quiz";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -15,6 +16,8 @@ function QuizModal() {
   const [title, setTitle] = useState<string>(""); // default to empty string
   const [description, setDescription] = useState<string>(""); // default to empty string
   const [maxParticipants, setMaxParticipants] = useState<number>(0); // default to 0
+
+  const router = useRouter();
 
   const [changedFields, setChangeFields] = useState<Record<string, boolean>>(
     {}
@@ -93,6 +96,7 @@ function QuizModal() {
       success: (data) => {
         console.log(data);
         handleClose(); // Close the modal after quiz creation
+        router.push(`/dashboard/quiz/new/${data?.data?.id}`);
         return `Quiz created successfully!`;
       },
       error: (error) => {

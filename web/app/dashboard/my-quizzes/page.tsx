@@ -12,13 +12,13 @@ async function page() {
       </div>
     );
   }
-
+  
   const myQuizzes = await getMyQuizzes(token);
   console.log(myQuizzes);
   const quizzesCreated = myQuizzes.data.quizzesCreated;
   const quizzesJoined = myQuizzes.data.quizzesJoined;
   return (
-    <div className="p-8 px-32">
+    <div className="p-8 md:px-32">
       <MainContent
         quizzesCreated={quizzesCreated}
         quizzesJoined={quizzesJoined}

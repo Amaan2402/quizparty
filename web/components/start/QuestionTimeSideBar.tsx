@@ -30,7 +30,7 @@ function QuestionTimeSideBar({
   }, [timePerQuestion, questionIndex]);
 
   return (
-    <div className="w-4/12 flex flex-col items-center">
+    <div className="md:w-4/12 flex flex-col items-center">
       <div style={{ width: 170, height: 170 }}>
         <CircularProgressbar
           minValue={0}
@@ -45,12 +45,12 @@ function QuestionTimeSideBar({
         />
       </div>
 
-      <div className="mt-3 text-white">
+      <div className="mt-3 text-white flex items-center gap-2 md:block">
         <p className="text-lg">This question: </p>
-        <p className="text-xl font-semibold">{timePerQuestion} seconds</p>
+        <p className="text-lg font-semibold">{timePerQuestion} seconds</p>
       </div>
 
-      <div className="flex flex-col items-center justify-center mt-5 relative">
+      <div className="hidden md:flex md:flex-col md:items-center md:justify-center md:mt-5 md:relative">
         <div className="bg-[#2a3191] w-[140px] h-[140px] rounded-full"></div>
 
         <div className="absolute top-0 w-[250px] h-[250px] flex items-center justify-center">

@@ -11,7 +11,7 @@ function ConnectedDiscordCard({
   discriminator: string;
 }) {
   return (
-    <div className="bg-[#4237af] w-5/12 gap-3 p-5 rounded-2xl flex flex-col items-center ">
+    <div className="bg-[#4237af] md:w-5/12 gap-3 p-5 rounded-2xl flex flex-col items-center ">
       <FontAwesomeIcon icon={faDiscord} size="3x" />
 
       <div>

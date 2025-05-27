@@ -4,7 +4,9 @@ import Header from "@/components/new-quiz/Header";
 import QuestionsList from "@/components/new-quiz/QuestionsList";
 import { useQuestionStore } from "@/store/useQuestionStore";
 import { useQuizStore } from "@/store/useQuizStore";
-import { getQuiz, getQuizQuestions, updateQuizToLive } from "@/utils/quiz";
+import { getQuizQuestions } from "@/utils/question";
+import { getQuiz } from "@/utils/quiz";
+import { updateQuizToLive } from "@/utils/quizStatus";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useParams } from "next/navigation";
@@ -77,7 +79,7 @@ export default function Page() {
       setIsButtonDisabled(true);
       toast.promise(updateQuizToLive(quizId), {
         loading: "Updating quiz to live...",
-        success: (data) => {
+        success: () => {
           setIsButtonDisabled(false);
           window.location.href = `/dashboard/quiz/live/${quizId}`;
           return "Quiz is now live!";
@@ -178,15 +180,15 @@ export default function Page() {
   ) : error ? (
     <div>Error: {error}</div>
   ) : quiz?.status === "CREATED" && quiz ? (
-    <div className="px-12 mt-2">
+    <div className="md:px-12 p-2 mt-2 pb-20 md:pb-0">
       <Header
         title={quiz.title}
         maxParticipants={quiz.maxParticipants}
         timePerQuestion={quiz.timePerQuestion}
       />
-      <div className="flex gap-4 w-full justify-between text-white">
+      <div className="flex flex-col md:flex-row gap-4 w-full justify-between text-white">
         <AddQuestions quizId={quizId} />
-        <div className="w-full flex flex-col justify-between">
+        <div className="w-full flex flex-col justify-between mt-3 md:mt-0">
           <QuestionsList />
 
           {isQuizReady ? (

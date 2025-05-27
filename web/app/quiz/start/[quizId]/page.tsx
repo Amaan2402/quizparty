@@ -2,7 +2,8 @@
 
 import Header from "@/components/start/Header";
 import MainContent from "@/components/start/MainContent";
-import { joinQuiz } from "@/utils/quiz";
+import { joinQuiz } from "@/utils/participant";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -103,6 +104,7 @@ function Page() {
 
     // Quiz Start Countdown from server
     socket.current.on("start-quiz", (data) => {
+      console.log("Quiz starting in", data.startsIn, "seconds");
       setCountDown(data.startsIn + 2);
       setQuizStatus("countdown");
 
@@ -119,11 +121,18 @@ function Page() {
     });
 
     socket.current.on("new-question", (data) => {
+      if (quizStatus !== "started") {
+        console.log("TRIGGERED NEW QUESTION WHILE NOT STARTED");
+        setQuizStatus("started");
+      }
+      console.log("NEW QUESTION RECEIVED", data);
+      console.log("LATEST STATUS", quizStatus);
       setQuestion(data.question);
       setTimePerQuestion(data.timePerQuestion);
     });
 
     socket.current.on("quiz-completed", (data) => {
+      console.log("Quiz completed", data);
       if (data.status) {
         setIsQuizEnded(true);
       }
@@ -166,6 +175,7 @@ function Page() {
         },
         error: (err) => {
           setQuizStatus("error");
+          console.error("Failed to join quiz", err);
           setError(err.response?.data?.message || "Failed to join quiz");
           return err.response?.data?.message || "Failed to join quiz";
         },
@@ -190,6 +200,10 @@ function Page() {
           You have been banned from this quiz. Please contact the quiz
           administrator for more information.
         </p>
+
+        <Link href="/dashboard">
+          <p className="underline underline-offset-2">Back to dashboard</p>
+        </Link>
       </div>
     );
   }
@@ -216,11 +230,13 @@ function Page() {
         <WaitingScreen />
       </div>
     );
-  if (quizStatus === "countdown") return;
-  <div>
-    <Header reward={reward} quizId={quizId as string} />
-    <CountdownScreen seconds={countDown} />;
-  </div>;
+  if (quizStatus === "countdown")
+    return (
+      <div>
+        <Header reward={reward} quizId={quizId as string} />
+        <CountdownScreen seconds={countDown} />
+      </div>
+    );
 
   if (quizStatus === "isWaitingForNextQuestion") {
     return (
@@ -237,14 +253,17 @@ function Page() {
 
   if (isQuizEnded) {
     return (
-      <div>
-        <Header reward={reward} quizId={quizId as string} />
-        <div className="flex flex-col items-center justify-center h-screen">
+      <div className="px-10">
+        <div className="flex flex-col justify-center h-screen">
           <h1 className="text-2xl font-bold text-blue-500">
             Quiz has ended. Thank you for participating!
           </h1>
 
           <p>Your score will be calculated and shared with you soon.</p>
+
+          <Link href="/dashboard">
+            <p className="underline underline-offset-2">Back to dashboard</p>
+          </Link>
         </div>
       </div>
     );

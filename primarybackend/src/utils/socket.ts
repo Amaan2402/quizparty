@@ -1,5 +1,5 @@
 import { CustomError } from "./CustomError";
-import { prisma } from "./db";
+import { prisma } from "@amaan2202/prisma-client";
 import jwt from "jsonwebtoken";
 
 export const handleJoinRoom = async ({
@@ -27,14 +27,14 @@ export const handleJoinRoom = async ({
       quizId: quizId,
     },
     include: {
-      user: {
+      User: {
         select: {
           id: true,
           email: true,
           name: true,
         },
       },
-      quiz: {
+      Quiz: {
         select: {
           status: true,
         },
@@ -70,8 +70,8 @@ export const handleJoinRoom = async ({
   }
 
   if (
-    participant.quiz.status === "ENDED" ||
-    participant.quiz.status === "CREATED"
+    participant.Quiz.status === "ENDED" ||
+    participant.Quiz.status === "CREATED"
   ) {
     return {
       status: null,
@@ -85,9 +85,9 @@ export const handleJoinRoom = async ({
     participant: {
       id: participant.id,
       user: {
-        id: participant.user.id,
-        email: participant.user.email,
-        name: participant.user.name,
+        id: participant.User.id,
+        email: participant.User.email,
+        name: participant.User.name,
       },
     },
   };
@@ -169,7 +169,7 @@ export const handleResetParticipantConnectionStatus = async () => {
   try {
     const data = await prisma.participant.updateManyAndReturn({
       where: {
-        quiz: {
+        Quiz: {
           status: "LIVE",
         },
         isConnected: true,
@@ -179,7 +179,7 @@ export const handleResetParticipantConnectionStatus = async () => {
       },
     });
     console.log(data);
-    console.log("Participant connection status reset successf ully");
+    console.log("Participant connection status reset successfully");
   } catch (error) {
     console.log("Error resetting participant connection status:", error);
     throw new CustomError("Failed to reset participant connection status", 500);

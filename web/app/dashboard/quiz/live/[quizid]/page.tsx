@@ -134,7 +134,7 @@ function Page() {
         success: (data) => {
           console.log(data);
           setQuiz(data.data);
-          setParticipants([...data.data.participants]);
+          setParticipants([...data?.data?.Participant]);
           setIsQuizStarted(data.data.status === "STARTED" ? true : false);
           setLoading(false);
           return `Quiz details loaded successfully!`;
@@ -225,7 +225,7 @@ function Page() {
   return (
     quiz &&
     quiz.status && (
-      <div className="p-4 px-20 overflow-hidden">
+      <div className="p-4 md:px-20 overflow-hidden">
         <Header
           title={quiz.title}
           status={quiz.status}

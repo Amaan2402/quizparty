@@ -7,7 +7,7 @@ import React from "react";
 function AuthFooter() {
   const urlPath = usePathname();
   return (
-    <div className="w-full bg-[#252a7f] text-white h-36 absolute bottom-0 flex items-center pl-72 text-xl font-semibold">
+    <div className="w-full bg-[#252a7f] pl-10 text-white h-36 absolute bottom-0 flex items-center md:pl-72 text-xl font-semibold">
       {urlPath === "/auth/signin" ? (
         <p>
           Don&apos;t have an account?{" "}

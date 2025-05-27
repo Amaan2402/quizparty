@@ -3,7 +3,7 @@ import InfoCard from "./InfoCard";
 
 function InfoCardSection() {
   return (
-    <div className="flex justify-between px-56 gap-3 relative top-[-20px]">
+    <div className="flex mx-4 md:mx-24 xl:mx-44  justify-between flex-wrap md:flex-nowrap gap-3 relative top-[-20px]">
       <InfoCard
         title="Live quizzes"
         description="Host quizzes in real-time and engage your community"

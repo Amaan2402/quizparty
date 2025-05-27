@@ -74,7 +74,8 @@ export default function LineChartDashBoard({
               <p>Total participants overtime</p>
             ) : (
               <p>
-                No data available -{" "}
+                No data available
+                <br />
                 <span className="font-light">
                   0 participants for the last 28 days
                 </span>

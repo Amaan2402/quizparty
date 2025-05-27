@@ -5,7 +5,6 @@ async function page() {
   return (
     <div>
       <DashBoardContent />
-      {/* right side bar */}
     </div>
   );
 }

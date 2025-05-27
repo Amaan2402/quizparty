@@ -92,3 +92,23 @@ export const changePassword = async ({
   console.log("Password changed successfully:", res.data);
   return res.data;
 };
+
+export const sendResetPasswordEmail = async (email: string) => {
+  const res = await api.post("/auth/request-password-reset", { email });
+  return res.data;
+};
+
+export const resetPassword = async ({
+  id,
+  token,
+  newPassword,
+}: {
+  id: string;
+  token: string;
+  newPassword: string;
+}) => {
+  const res = await api.post(`/auth/reset-password?id=${id}&token=${token}`, {
+    password: newPassword,
+  });
+  return res.data;
+};

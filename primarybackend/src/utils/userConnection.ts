@@ -1,4 +1,4 @@
-import { prisma } from "./db";
+import { prisma } from "@amaan2202/prisma-client";
 
 export const toggleUserConnectionStatus = async (participantId: string) => {
   console.log("Updating user connection status...", participantId);

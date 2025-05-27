@@ -1,4 +1,4 @@
-import { removeAndBanParticipant } from "@/utils/quiz";
+import { removeAndBanParticipant } from "@/utils/participant";
 import React from "react";
 import toast from "react-hot-toast";
 
@@ -20,7 +20,7 @@ function ParticipantsList({
 }) {
   if (participants.length === 0) {
     return (
-      <div className="mt-2 w-8/12 bg-[#252474] rounded-md text-white max-h-[380px] overflow-auto hide-scrollbar border-b-10 border-b-[#3f3faf]">
+      <div className="mt-2 md:w-8/12 bg-[#252474] rounded-md text-white max-h-[380px] overflow-auto hide-scrollbar border-b-10 border-b-[#3f3faf]">
         <p className="text-center p-4 font-semibold text-xl">
           No participants yet
         </p>
@@ -44,7 +44,7 @@ function ParticipantsList({
   };
 
   return (
-    <div className="mt-2 w-8/12 bg-[#252474] rounded-md text-white max-h-[380px] overflow-auto hide-scrollbar border-b-10 border-b-[#3f3faf]">
+    <div className="mt-2 md:w-8/12 bg-[#252474] rounded-md text-white max-h-[380px] overflow-auto hide-scrollbar border-b-10 border-b-[#3f3faf]">
       <table className="w-full text-left">
         <thead className="sticky top-0">
           <tr className="bg-[#3f3faf]">

@@ -1,7 +1,8 @@
-import { prisma } from "../utils/db";
 import { comparePassword, hashPassword } from "../utils/bcrypt";
 import { CustomError } from "../utils/CustomError";
-import { generateToken } from "../utils/jwt";
+import { generateToken, verifyToken } from "../utils/jwt";
+import { sendEmail } from "../controllers/nodemailer";
+import { prisma } from "@amaan2202/prisma-client";
 
 export const isUserExists = async (email: string) => {
   try {
@@ -10,6 +11,7 @@ export const isUserExists = async (email: string) => {
         email: email,
       },
     });
+
     console.log(user, "User found in DB::12");
     return user
       ? {
@@ -244,6 +246,90 @@ export const changePasswordDb = async ({
 
   if (!updateUser) {
     throw new CustomError("Password update failed", 500);
+  }
+
+  return {
+    status: "success",
+  };
+};
+
+export const handleRequestPasswordReset = async ({
+  email,
+}: {
+  email: string;
+}) => {
+  const userDb = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
+  });
+
+  if (!userDb) {
+    throw new CustomError("User not found", 404);
+  }
+
+  const secret = process.env.JWT_SECRET + userDb.password;
+  const token = generateToken({
+    userId: userDb.id,
+    email: userDb.email,
+    secret,
+    expiresIn: "15m",
+  });
+
+  const resetUrl = `http://localhost:3000/auth/reset-password?token=${token}&id=${userDb.id}`;
+
+  const subject = "Password Reset Request";
+  const html = `<p>Click <a href="${resetUrl}">here</a> to reset your password.
+  please note that this link will expire in 15 minutes.</p>
+  <p>If you did not request a password reset, please ignore this email.</p>
+  <p>Thank you!</p>
+  <p>Note: This is an automated message, please do not reply.</p>
+  <p>If you have any questions, feel free to contact us at support@example.com</p>`;
+
+  const emailResponse = await sendEmail({ email, subject, html });
+
+  return emailResponse;
+};
+
+export const resetPasswordDb = async ({
+  id,
+  token,
+  newPassword,
+}: {
+  id: string;
+  token: string;
+
+  newPassword: string;
+}) => {
+  if (newPassword.length < 8) {
+    throw new CustomError("Password must be at least 8 characters long", 400);
+  }
+
+  const userDb = await prisma.user.findUnique({
+    where: {
+      id: id,
+    },
+  });
+
+  if (!userDb) {
+    throw new CustomError("User not found", 404);
+  }
+
+  const secret = process.env.JWT_SECRET + userDb.password;
+  const decodedToken = verifyToken(token, secret);
+
+  const hashedPassword = await hashPassword(newPassword);
+  const updatedUser = await prisma.user.update({
+    where: {
+      id: id,
+    },
+    data: {
+      password: hashedPassword,
+    },
+  });
+
+  if (!updatedUser) {
+    throw new CustomError("Password reset failed", 500);
   }
 
   return {

@@ -1,6 +1,7 @@
 import Footer from "@/components/landing/Footer";
 import Header from "@/components/landing/Header";
 import Hero from "@/components/landing/Hero";
+import HowItWorks from "@/components/landing/HowItWorks";
 import InfoCardSection from "@/components/landing/InfoCardSection";
 import { getUser } from "@/utils/auth";
 import { cookies } from "next/headers";
@@ -19,6 +20,7 @@ export default async function Home() {
       <Header user={user} />
       <Hero />
       <InfoCardSection />
+      <HowItWorks />
       <Footer />
     </div>
   );

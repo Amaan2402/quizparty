@@ -18,8 +18,6 @@ const client = new Client({
   ],
 });
 
-const commands = [createQuizCommand.data.toJSON()];
-
 client.on("ready", handleReadyEvent);
 client.on("messageCreate", handleCreateMessage);
 

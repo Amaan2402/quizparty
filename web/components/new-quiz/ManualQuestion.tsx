@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
 import QuestionInput from "./QuestionInput";
 import toast from "react-hot-toast";
-import { createQuizQuestion } from "@/utils/quiz";
+import { createQuizQuestion } from "@/utils/question";
 import { useQuestionStore } from "@/store/useQuestionStore";
 
 type Options = {
@@ -157,7 +157,7 @@ function ManualQuestion({ quizId }: { quizId: string }) {
         })}
         <div className="mt-2 w-full">
           <button
-            className="bg-[#2553fc] w-3/12 mb-2 px-2 py-[2px] font-medium rounded-md"
+            className="bg-[#2553fc] mb-2 px-2 py-[2px] font-medium rounded-md"
             onClick={handleAddOption}
             disabled={isLoading}
           >
@@ -165,7 +165,7 @@ function ManualQuestion({ quizId }: { quizId: string }) {
           </button>
           <br />
           <button
-            className={` w-4/12 px-2 py-[2px] font-medium rounded-md ${
+            className={`px-2 py-[2px] font-medium rounded-md ${
               isLoading ? "bg-[#439b43] cursor-not-allowed" : "bg-[#008000]"
             }`}
             onClick={handleCreateQuestion}

@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@amaan2202/prisma-client": "^1.0.2",
     "@prisma/client": "^6.6.0",
     "@types/redis": "^4.0.11",
     "prisma": "^6.6.0",

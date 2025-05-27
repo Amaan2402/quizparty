@@ -11,7 +11,7 @@ function CardSection({
   } | null;
 }) {
   return (
-    <div className="flex justify-between mt-2">
+    <div className="flex justify-between mt-2 gap-2 w-full">
       <Card title={data?.totalQuizzesCreated || "NA"} desc="Total Quizzes" />
       <Card
         title={data?.totalParticipantsAcrossQuizzes || "NA"}

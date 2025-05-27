@@ -114,7 +114,7 @@ function QuizCard({ q, mode }: { q: quiz; mode: "CREATED" | "PARTICIPATED" }) {
     }
   }
   return (
-    <div className="bg-[#373694] border-2 border-[#2f3271] min-w-5/12 max-w-5/12 mb-2 text-white p-4 rounded-lg">
+    <div className="bg-[#373694] border-2 border-[#2f3271] w-full lg:min-w-[48%] lg:max-w-[48%] mb-2 text-white p-2 md:p-4 rounded-lg">
       <div className="flex justify-between w-full items-center">
         <h1 className="font-semibold text-xl">{q.title}</h1>
         <div

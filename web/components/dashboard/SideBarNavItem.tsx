@@ -10,10 +10,12 @@ function SideBarNavItem({
   title,
   icon,
   redirectUrl,
+  onlyIcon,
 }: {
   title: string;
   redirectUrl: string;
   icon: IconProp;
+  onlyIcon: boolean;
 }) {
   const currentPath = usePathname();
   const isActive = currentPath === redirectUrl;
@@ -24,14 +26,16 @@ function SideBarNavItem({
           isActive ? "bg-[#373694]" : ""
         } p-4 rounded-md text-white font-medium flex items-center`}
       >
-        <div style={{ width: "20px", height: "20px", marginRight: "15px" }}>
+        <div
+          style={{ width: "20px", height: "20px" }}
+          className={`${onlyIcon ? "mr-0" : "mr-4"}`}
+        >
           <FontAwesomeIcon
             icon={icon}
             style={{ color: "#ffffff", width: "100%", height: "100%" }}
           />
         </div>
-
-        <p>{title}</p>
+        {onlyIcon ? null : <p>{title}</p>}
       </div>
     </Link>
   );
