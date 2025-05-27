@@ -1,10 +1,14 @@
 "use client";
 
 import MainContent from "@/components/automation/MainContent";
-import React from "react";
+import React, { Suspense } from "react";
 
 function Page() {
-  return <MainContent />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MainContent />
+    </Suspense>
+  );
 }
 
 export default Page;
