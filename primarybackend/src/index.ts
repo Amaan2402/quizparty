@@ -22,8 +22,6 @@ import { resultRouter } from "./router/result";
 const app = express();
 const PORT = 3005;
 
-console.log("Environment Variables:", process.env.OPEN_ROUTER_DEEP_SEEK_API);
-
 try {
   handleResetParticipantConnectionStatus();
 } catch (error) {
@@ -33,7 +31,10 @@ try {
 const server = createServer(app);
 initialiseSocket(server);
 
-const allowedOrigins = ["http://localhost:3000", "http://192.168.31.53:3000"];
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://quizparty-sable.vercel.app",
+];
 app.use(
   cors({
     origin: allowedOrigins,
