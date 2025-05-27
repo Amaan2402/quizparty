@@ -27,6 +27,7 @@ export const authMiddleware = (
     "/api/auth/reset-password",
     "/socket.io",
     "/api/quiz/discord",
+    "/",
   ];
   if (paths.includes(req.path)) {
     return next();
