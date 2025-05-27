@@ -49,7 +49,6 @@ export const loginUser = async (req: Request, res: Response) => {
   const { email, password }: { email: string; password: string } = req.body;
 
   const user = await loginUserDb({ email, password });
-  console.log("User data:", user);
   res.cookie("token", user.data.token, {
     httpOnly: true,
     secure: true, // Set to true in production with HTTPS || false for development
