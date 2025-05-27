@@ -54,7 +54,6 @@ export const loginUser = async (req: Request, res: Response) => {
     secure: true, // Set to true in production with HTTPS || false for development
     sameSite: "none", // or "none" if cross-origin AND HTTPS || lax for development
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    domain: "quizparty.onrender.com",
   });
 
   res.json({

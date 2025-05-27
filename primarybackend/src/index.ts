@@ -69,7 +69,6 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use(
   (err: CustomError, req: Request, res: Response, next: NextFunction): void => {
-    console.log("GLOBAL CATCH::::Error occurred:", err);
     const message = err.message || "Internal Server Error";
     const statusCode = err.statusCode || 500;
     res.status(statusCode).json({ message: message });
