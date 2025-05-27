@@ -10,7 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@amaan2202/prisma-client": "^1.0.2",
+    "@amaan2202/prisma-client": "^1.0.3",
     "@google/genai": "^1.0.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.8",

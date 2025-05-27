@@ -11,7 +11,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:mypassword@localhost:5433/myquizdb?schema=public"
+  url      = "postgresql://neondb_owner:npg_4jWXGRS3pOuc@ep-cool-dew-a85tnm54-pooler.eastus2.azure.neon.tech/neondb?sslmode=require"
 }
 
 model Answer {
