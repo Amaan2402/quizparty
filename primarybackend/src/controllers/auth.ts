@@ -45,25 +45,17 @@ export const loginUser = async (req: Request, res: Response) => {
       type: "validation",
     });
   }
-  console.log(req.cookies, "Cookies in loginUser");
   const { email, password }: { email: string; password: string } = req.body;
 
   const user = await loginUserDb({ email, password });
-  console.log("SETTING COOKIE", user.data.token);
 
-  res.clearCookie("token", {
-    domain: ".quizparty.onrender.com", // match what you set!
-    path: "/",
-  });
-  console.log("COOKIE CLEARED");
   res.cookie("token", user.data.token, {
     httpOnly: true,
     secure: true, // Set to true in production with HTTPS || false for development
     sameSite: "none", // or "none" if cross-origin AND HTTPS || lax for development
-    domain: ".quizparty.onrender.com", // <- ADD THIS!
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    expires: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000),
+    path: "/",
   });
-  console.log("COOKIE SET", user.data.token);
 
   res.json({
     message: "Login successful",
