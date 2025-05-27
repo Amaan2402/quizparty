@@ -27,7 +27,7 @@ function QuestionTimeSideBar({
     }, 1000);
 
     return () => clearInterval(timerInterval); // cleanup on unmount
-  }, [timePerQuestion, questionIndex]);
+  }, [timePerQuestion, questionIndex, handleQuestionChange]);
 
   return (
     <div className="md:w-4/12 flex flex-col items-center">

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import QuestionTimeSideBar from "./QuestionTimeSideBar";
 import QuizQuestion from "./QuizQuestion";
 import { submitAnswer } from "@/utils/participant";
@@ -33,7 +33,7 @@ function MainContent({
     setIsQuestionChanged(val);
   };
 
-  const handleSubmitAnswer = async () => {
+  const handleSubmitAnswer = useCallback(async () => {
     if (questionIndex > 0) {
       const answerRef = selectedOptionIndex;
       await submitAnswer({
@@ -43,13 +43,13 @@ function MainContent({
       handleSetSelectedOptionIndex(0); // Reset selected option index after submission
       handleQuestionChange(false); // Reset question change state
     }
-  };
+  }, [questionIndex, selectedOptionIndex, question.id]);
 
   useEffect(() => {
     if (isQuestionChanged) {
       handleSubmitAnswer();
     }
-  }, [isQuestionChanged]);
+  }, [isQuestionChanged, handleSubmitAnswer]);
 
   return (
     <div className="flex flex-col items-center md:flex-row px-6 md:px-24 lg:px-52 mt-5">

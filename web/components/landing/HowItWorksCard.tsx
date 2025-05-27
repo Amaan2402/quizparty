@@ -1,9 +1,7 @@
 import React from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 
 function HowItWorksCard({
-  icon,
   title,
   matter,
 }: {

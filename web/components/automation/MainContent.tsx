@@ -69,7 +69,7 @@ function MainContent() {
         },
       });
     }
-  }, [code]);
+  }, [code, router]);
 
   if (loading) {
     return (

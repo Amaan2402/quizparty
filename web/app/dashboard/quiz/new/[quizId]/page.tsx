@@ -136,7 +136,7 @@ export default function Page() {
     if (quizId) {
       fetchQuizQuestions();
     }
-  }, [quizId]);
+  }, [quizId, setQuestionsList]);
 
   // This effect fetches the quiz data when the quizId changes
   useEffect(() => {

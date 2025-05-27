@@ -20,7 +20,7 @@ function NameEmail({
       setLocalName(user.name);
       setLocalEmail(user.email);
     }
-  }, [user]);
+  }, [user, localName, localEmail]);
 
   const handleSaveChanges = () => {
     setIsButtonDisabled(true);

@@ -104,7 +104,6 @@ function Page() {
 
     // Quiz Start Countdown from server
     socket.current.on("start-quiz", (data) => {
-      console.log("Quiz starting in", data.startsIn, "seconds");
       setCountDown(data.startsIn + 2);
       setQuizStatus("countdown");
 
@@ -122,17 +121,13 @@ function Page() {
 
     socket.current.on("new-question", (data) => {
       if (quizStatus !== "started") {
-        console.log("TRIGGERED NEW QUESTION WHILE NOT STARTED");
         setQuizStatus("started");
       }
-      console.log("NEW QUESTION RECEIVED", data);
-      console.log("LATEST STATUS", quizStatus);
       setQuestion(data.question);
       setTimePerQuestion(data.timePerQuestion);
     });
 
     socket.current.on("quiz-completed", (data) => {
-      console.log("Quiz completed", data);
       if (data.status) {
         setIsQuizEnded(true);
       }
@@ -150,7 +145,7 @@ function Page() {
         socket.current.disconnect();
       }
     };
-  }, [participant]);
+  }, [participant, quizStatus]);
 
   // Handle joining quiz on mount
   useEffect(() => {
