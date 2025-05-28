@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 
 type Participant = {
   id: string;
-  user: {
+  User: {
     name: string;
     email: string;
     id: string;
@@ -18,6 +18,7 @@ function ParticipantsList({
   participants: Participant[];
   quizId: string;
 }) {
+  console.log(participants);
   if (participants.length === 0) {
     return (
       <div className="mt-2 md:w-8/12 bg-[#252474] rounded-md text-white max-h-[380px] overflow-auto hide-scrollbar border-b-10 border-b-[#3f3faf]">
@@ -58,8 +59,8 @@ function ParticipantsList({
         <tbody>
           {participants.map((item, index) => (
             <tr key={index}>
-              <td className="p-2">{item.user.name}</td>
-              <td className="p-2">{item.user.email}</td>
+              <td className="p-2">{item?.User?.name}</td>
+              <td className="p-2">{item?.User?.email}</td>
               <td className="p-2">
                 <button
                   className="text-red-500 bg-red-200 px-3 rounded-md font-medium cursor-pointer hover:bg-red-600 hover:text-white"

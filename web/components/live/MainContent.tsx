@@ -6,7 +6,7 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 
 type Participant = {
   id: string;
-  user: {
+  User: {
     name: string;
     email: string;
     id: string;

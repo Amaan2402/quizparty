@@ -34,7 +34,7 @@ type Quiz = {
 
 type Participant = {
   id: string;
-  user: {
+  User: {
     name: string;
     email: string;
     id: string;
@@ -43,9 +43,7 @@ type Participant = {
 
 function Page() {
   console.log("Live Quiz Page Loaded");
-  const params = useParams();
-  console.log("Params:", params);
-  const quizId = useParams().quizId;
+  const quizId = useParams().quizid;
   console.log("Quiz ID from params:", quizId);
 
   const [loading, setLoading] = useState(true);
@@ -143,6 +141,7 @@ function Page() {
       toast.promise(getQuiz(quizId), {
         loading: "Loading quiz details...",
         success: (data) => {
+          console.log("Quiz data fetched:", data);
           setQuiz(data.data);
           setParticipants([...data?.data?.Participant]);
           setIsQuizStarted(data.data.status === "STARTED");
