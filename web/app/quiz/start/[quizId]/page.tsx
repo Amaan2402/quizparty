@@ -93,7 +93,7 @@ function Page() {
     }
     const socketURL =
       process.env.NEXT_PUBLIC_PRODUCTION === "true"
-        ? "wss://api.quizparty.amaan24.tech/api"
+        ? "wss://api.quizparty.amaan24.tech"
         : "ws://localhost:3005";
 
     const socketInstance = io(socketURL, {
