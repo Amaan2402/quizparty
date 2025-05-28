@@ -102,7 +102,7 @@ function MainContent() {
 
   return (
     <div className="p-10">
-      <Link href="https://discord.com/oauth2/authorize?client_id=1374068197539713216&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fdashboard%2Fautomation-tools&scope=identify">
+      <Link href="https://discord.com/oauth2/authorize?client_id=1374068197539713216&response_type=code&redirect_uri=https%3A%2F%2Fquizparty.amaan24.tech%2Fdashboard%2Fautomation-tools&scope=identify">
         <button
           className={`text-white ${
             isCodeAvailable ? "bg-[#4a40a4]" : "bg-[#3b2fa9]"
