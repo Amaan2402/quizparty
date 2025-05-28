@@ -125,9 +125,7 @@ function Page() {
     });
 
     socket.current.on("new-question", (data) => {
-      if (quizStatus !== "started") {
-        setQuizStatus("started");
-      }
+      setQuizStatus((prev) => (prev === "started" ? prev : "started"));
       setQuestion(data.question);
       setTimePerQuestion(data.timePerQuestion);
     });
@@ -150,7 +148,7 @@ function Page() {
         socket.current.disconnect();
       }
     };
-  }, [participant, quizStatus]);
+  }, [participant]);
 
   // Handle joining quiz on mount
   useEffect(() => {
