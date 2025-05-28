@@ -30,7 +30,7 @@ function ConnectedDiscordCard({
       <div className="text-[#cccefc]">
         <p>Install the bot by clicking below, if you haven&apos;t already</p>
       </div>
-      <Link href="https://discord.com/oauth2/authorize?client_id=1374068197539713216&permissions=562952101165152&response_type=code&redirect_uri=https%3A%2F%2Fquizparty.amaan24.tech%2Fdashboard%2Fautomation-tools&integration_type=0&scope=identify+guilds+guilds.channels.read+applications.commands+bot">
+      <Link href="https://discord.com/oauth2/authorize?client_id=1374068197539713216&permissions=563501856910448&response_type=code&redirect_uri=https%3A%2F%2Fquizparty.amaan24.tech%2Fdashboard%2Fautomation-tools&integration_type=0&scope=identify+guilds+applications.commands+bot">
         <button className="bg-[#3451ff] px-5 py-1 text-xl font-bold rounded-lg">
           Install Bot
         </button>
@@ -38,5 +38,7 @@ function ConnectedDiscordCard({
     </div>
   );
 }
+
+// ("https://discord.com/oauth2/authorize?client_id=1374068197539713216&permissions=2147608576&response_type=code&redirect_uri=https%3A%2F%2Fquizparty.amaan24.tech%2Fdashboard%2Fautomation-tools&integration_type=0&scope=identify+guilds+messages.read+applications.commands+bot");
 
 export default ConnectedDiscordCard;
