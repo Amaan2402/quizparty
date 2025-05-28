@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
     ],
   },
   reactStrictMode: false,
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "https://api.quizparty.amaan24.tech/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

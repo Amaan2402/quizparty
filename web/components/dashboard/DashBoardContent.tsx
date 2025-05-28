@@ -42,7 +42,7 @@ function DashBoardContent() {
         return null;
       },
       error: (err) => {
-        setError(err.respose.data.message || "Something went wrong");
+        setError(err?.respose?.data?.message || "Something went wrong");
         setLoading(false);
         return null;
       },

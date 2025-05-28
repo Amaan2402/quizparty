@@ -9,6 +9,7 @@ export async function middleware(req: NextRequest) {
     const response = NextResponse.next(); // Create response object
     response.headers.set("x-current-path", path); // Set the current path in headers
 
+    console.log("TOKEN:", token);
     if (path === "/auth/signin" && !token) {
       return response;
     }
