@@ -77,6 +77,7 @@ function Page() {
         reconnectionAttempts: 3,
         reconnectionDelay: 3000,
         withCredentials: true,
+        transports: ["polling"],
       });
 
       socketRef.current.emit("join-room", {
