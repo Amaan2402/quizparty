@@ -7,14 +7,19 @@ export async function middleware(req: NextRequest) {
     const token = req.cookies.get("token");
     const response = NextResponse.next();
 
+    console.log(token, "token in middleware");
+
     // ✅ Always allow access to /auth/signin if no valid token
     if (path === "/auth/signin") {
+      console.log("TRIGGERED 1");
       if (!token) return response;
 
       const isTokenValid = await verifyToken(token.value);
       if (isTokenValid) {
+        console.log("TRIGGERED 2");
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
+      console.log("TRIGGERED 3");
       return response; // 👈 prevent redirect loop
     }
 
@@ -22,8 +27,11 @@ export async function middleware(req: NextRequest) {
 
     // ✅ Redirect to signin if trying to access protected page without valid token
     if (!isTokenValid) {
+      console.log("TRIGGERED 4");
+
       return NextResponse.redirect(new URL("/auth/signin", req.url));
     }
+    console.log("TRIGGERED 5");
 
     return response;
   } catch (error) {
