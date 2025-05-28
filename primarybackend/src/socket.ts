@@ -28,7 +28,7 @@ let io: Server;
 function initialiseSocket(server: any) {
   io = new Server(server, {
     cors: {
-      origin: ["http://localhost:3000", "https://quizparty-sable.vercel.app"],
+      origin: ["http://localhost:3000", "https://quizparty.amaan24.tech"],
       credentials: true,
     },
   });

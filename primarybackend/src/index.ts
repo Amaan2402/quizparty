@@ -33,7 +33,7 @@ initialiseSocket(server);
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://quizparty-sable.vercel.app",
+  "https://quizparty.amaan24.tech",
 ];
 app.use(
   cors({
