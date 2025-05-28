@@ -41,7 +41,7 @@ export const updateQuizLiveCommand = {
 
     try {
       const updatedQuiz = await axios.patch(
-        `https://api.quizparty.amaan24.tech/api/quiz/live/${quizId}?isDiscord=true&discordUserId=${interaction.user.id}`
+        `https://api.quizparty.amaan24.tech/api/quiz/status/live/${quizId}?isDiscord=true&discordUserId=${interaction.user.id}`
       );
 
       console.log(updatedQuiz.status);
@@ -62,6 +62,7 @@ export const updateQuizLiveCommand = {
         });
       }
     } catch (error: any) {
+      console.log(error);
       console.error("Error updating quiz:", error.response?.data.message);
       await interaction.followUp({
         content: `${

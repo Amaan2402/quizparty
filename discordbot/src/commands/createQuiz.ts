@@ -183,7 +183,7 @@ export const createQuizCommand = {
 
           await textChannel.send(
             `Link for dashboard: https://quizparty.amaan24.tech/dashboard/quiz/new/${quiz.data.data.quiz.id}
-            \nYou can update the quiz to live using command \`/quiz-live-${quiz.data.data.quiz.id}\`.`
+            \nYou can update the quiz to live using command \`/update-quiz-live-${quiz.data.data.quiz.id}\`.`
           );
         } catch (error) {
           console.error("Error creating quiz:", error);

@@ -42,7 +42,9 @@ type Participant = {
 };
 
 function Page() {
+  console.log("Live Quiz Page Loaded");
   const { quizId } = useParams();
+  console.log("Quiz ID from params:", quizId);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -129,10 +131,11 @@ function Page() {
     const fetchQuizDetails = async (quizId: string) => {
       setLoading(true);
       setError(null);
+      console.log("Fetching quiz details for quizId:", quizId);
       toast.promise(getQuiz(quizId), {
         loading: "Loading quiz details...",
         success: (data) => {
-          console.log(data);
+          console.log("Quiz details fetched successfully:", data);
           setQuiz(data.data);
           setParticipants([...data?.data?.Participant]);
           setIsQuizStarted(data.data.status === "STARTED" ? true : false);
@@ -140,6 +143,7 @@ function Page() {
           return `Quiz details loaded successfully!`;
         },
         error: (error) => {
+          console.log("Error fetching quiz details:", error);
           console.error(error);
           setLoading(false);
           setError(error.message);
@@ -148,6 +152,7 @@ function Page() {
       });
     };
     if (quizId) {
+      console.log("Quiz ID from params:", quizId);
       fetchQuizDetails(quizId as string);
     }
   }, [quizId]);
