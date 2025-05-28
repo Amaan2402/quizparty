@@ -5,95 +5,107 @@ import { getUser } from "../utils/getUser";
 import { prisma } from "@amaan2202/prisma-client";
 
 export const discordCallback = async (req: Request, res: Response) => {
-  const code = req.query.code;
+  try {
+    const code = req.query.code;
 
-  if (!code) {
-    return res.status(400).json({ error: "Code not provided" });
-  }
+    if (!code) {
+      return res.status(400).json({ error: "Code not provided" });
+    }
 
-  const user: any = getUser(req);
+    const user: any = getUser(req);
 
-  const isDiscordUserConnected = await prisma.userDiscord.findUnique({
-    where: { userId: user },
-  });
-
-  if (isDiscordUserConnected) {
-    return res.status(400).json({
-      error: "Discord account already connected. Please disconnect first.",
+    const isDiscordUserConnected = await prisma.userDiscord.findUnique({
+      where: { userId: user },
     });
-  }
 
-  const params = new URLSearchParams();
-  if (
-    !process.env.DISCORD_CLIENT_ID ||
-    !process.env.DISCORD_CLIENT_SECRET ||
-    !process.env.DISCORD_REDIRECT_URI
-  ) {
+    if (isDiscordUserConnected) {
+      return res.status(400).json({
+        error: "Discord account already connected. Please disconnect first.",
+      });
+    }
+
+    const params = new URLSearchParams();
+    if (
+      !process.env.DISCORD_CLIENT_ID ||
+      !process.env.DISCORD_CLIENT_SECRET ||
+      !process.env.DISCORD_REDIRECT_URI
+    ) {
+      throw new CustomError(
+        "Discord client ID, secret, or redirect URI not set in environment variables",
+        400
+      );
+    }
+
+    params.append("client_id", process.env.DISCORD_CLIENT_ID);
+    params.append("client_secret", process.env.DISCORD_CLIENT_SECRET);
+    params.append("grant_type", "authorization_code");
+    params.append("code", code as string);
+    params.append("redirect_uri", process.env.DISCORD_REDIRECT_URI);
+    params.append("scope", "identify");
+
+    const tokenResponse = await axios.post(
+      "https://discord.com/api/oauth2/token",
+      params.toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+    const refreshToken = tokenResponse.data.refresh_token;
+
+    const userResponse = await axios.get("https://discord.com/api/users/@me", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const discordUser = userResponse.data; // This contains user's Discord ID, username, discriminator etc.
+
+    const isDiscordUserAlreadyConnected = await prisma.userDiscord.findUnique({
+      where: { discordId: discordUser.id },
+    });
+    if (isDiscordUserAlreadyConnected) {
+      return res.status(400).json({
+        error: "Discord account already connected to another user.",
+      });
+    }
+
+    const discordUserDb = await prisma.userDiscord.upsert({
+      where: { userId: user },
+      update: {
+        accessToken,
+        refreshToken,
+        discordUsername: discordUser.username,
+        discordDiscriminator: discordUser.discriminator,
+        discordId: discordUser.id,
+      },
+      create: {
+        userId: user,
+        discordId: discordUser.id,
+        accessToken,
+        refreshToken,
+        discordUsername: discordUser.username,
+        discordDiscriminator: discordUser.discriminator,
+      },
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Discord connected successfully!", discordUserDb });
+  } catch (error) {
+    console.log("Error in discordCallback:", error);
+    if (error instanceof CustomError) {
+      throw error;
+    }
+
     throw new CustomError(
-      "Discord client ID, secret, or redirect URI not set in environment variables",
-      400
+      "An error occurred while connecting Discord account",
+      500
     );
   }
-
-  params.append("client_id", process.env.DISCORD_CLIENT_ID);
-  params.append("client_secret", process.env.DISCORD_CLIENT_SECRET);
-  params.append("grant_type", "authorization_code");
-  params.append("code", code as string);
-  params.append("redirect_uri", process.env.DISCORD_REDIRECT_URI);
-  params.append("scope", "identify");
-
-  const tokenResponse = await axios.post(
-    "https://discord.com/api/oauth2/token",
-    params.toString(),
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    }
-  );
-
-  const accessToken = tokenResponse.data.access_token;
-  const refreshToken = tokenResponse.data.refresh_token;
-
-  const userResponse = await axios.get("https://discord.com/api/users/@me", {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  const discordUser = userResponse.data; // This contains user's Discord ID, username, discriminator etc.
-
-  const isDiscordUserAlreadyConnected = await prisma.userDiscord.findUnique({
-    where: { discordId: discordUser.id },
-  });
-  if (isDiscordUserAlreadyConnected) {
-    return res.status(400).json({
-      error: "Discord account already connected to another user.",
-    });
-  }
-
-  const discordUserDb = await prisma.userDiscord.upsert({
-    where: { userId: user },
-    update: {
-      accessToken,
-      refreshToken,
-      discordUsername: discordUser.username,
-      discordDiscriminator: discordUser.discriminator,
-      discordId: discordUser.id,
-    },
-    create: {
-      userId: user,
-      discordId: discordUser.id,
-      accessToken,
-      refreshToken,
-      discordUsername: discordUser.username,
-      discordDiscriminator: discordUser.discriminator,
-    },
-  });
-
-  return res
-    .status(200)
-    .json({ message: "Discord connected successfully!", discordUserDb });
 };
 
 export const getDiscordUser = async (req: Request, res: Response) => {

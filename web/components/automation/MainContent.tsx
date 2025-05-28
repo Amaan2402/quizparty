@@ -61,7 +61,8 @@ function MainContent() {
           router.push("/dashboard/automation-tools");
           return "Connected to Discord!";
         },
-        error: () => {
+        error: (error) => {
+          console.log("Error connecting to Discord", error);
           setIsCodeAvailable(false);
           setLoading(false);
           setError("Error connecting to Discord");
