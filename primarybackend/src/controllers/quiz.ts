@@ -24,6 +24,19 @@ export const createQuiz = async (req: Request, res: Response) => {
 };
 
 export const createQuizDiscord = async (req: Request, res: Response) => {
+  console.log("REQUEST RECEIVED - CREATE QUIZ DISCORD", req.body);
+
+  if (
+    !req.body.title ||
+    !req.body.description ||
+    !req.body.timePerQuestion ||
+    !req.body.maxParticipants
+  ) {
+    return res.status(400).json({
+      message:
+        "Title, description, time per question, and max participants are required",
+    });
+  }
   const {
     title,
     description,
@@ -33,6 +46,7 @@ export const createQuizDiscord = async (req: Request, res: Response) => {
     aiPrompt,
     discordId,
   } = req.body;
+
   const quiz = await createQuizViaDiscordDb({
     discordId,
     title,

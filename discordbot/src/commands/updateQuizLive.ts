@@ -41,7 +41,7 @@ export const updateQuizLiveCommand = {
 
     try {
       const updatedQuiz = await axios.patch(
-        `http://localhost:3005/api/quiz/live/${quizId}?isDiscord=true&discordUserId=${interaction.user.id}`
+        `https://api.quizparty.amaan24.tech/api/quiz/live/${quizId}?isDiscord=true&discordUserId=${interaction.user.id}`
       );
 
       console.log(updatedQuiz.status);
@@ -49,8 +49,8 @@ export const updateQuizLiveCommand = {
       if (updatedQuiz.status === 200) {
         await interaction.followUp({
           content: `Quiz with ID: ${quizId} has been updated to live mode.
-        dashboard link: (http://localhost:3000/dashboard/quiz/live/${quizId})
-        quiz link: (http://localhost:3000/quiz/start/${quizId})
+        dashboard link: (https://quizparty.amaan24.tech/dashboard/quiz/live/${quizId})
+        quiz link: (https://quizparty.amaan24.tech/quiz/start/${quizId})
         \n You can now start the quiz by the below command: 
         \`/start-quiz-${quizId}\`
         `,

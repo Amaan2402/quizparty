@@ -85,6 +85,16 @@ export const createQuizViaDiscordDb = async ({
       throw new CustomError("Discord user not found", 404);
     }
 
+    const user = await prisma.user.findUnique({
+      where: {
+        id: discordUser.userId,
+      },
+    });
+
+    if (!user) {
+      throw new CustomError("User not found", 404);
+    }
+
     const quiz = await prisma.quiz.create({
       data: {
         creatorId: discordUser.userId,
@@ -99,8 +109,6 @@ export const createQuizViaDiscordDb = async ({
     if (!quiz) {
       throw new CustomError("Failed to create quiz", 500);
     }
-
-    console.log("Quiz created successfully:", quiz);
 
     const quizQuestionsAi = await generateQuizQuestionAiDb({
       quizId: quiz.id,

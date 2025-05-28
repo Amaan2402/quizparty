@@ -154,7 +154,7 @@ export const createQuizCommand = {
         );
         try {
           const quiz = await axios.post(
-            "http://localhost:3005/api/quiz/discord",
+            "https://api.quizparty.amaan24.tech/api/quiz/discord",
             {
               title: session.title,
               description: session.description,
@@ -182,7 +182,7 @@ export const createQuizCommand = {
           );
 
           await textChannel.send(
-            `Link for dashboard: http://localhost:3000/dashboard/quiz/new/${quiz.data.data.quiz.id}
+            `Link for dashboard: https://quizparty.amaan24.tech/dashboard/quiz/new/${quiz.data.data.quiz.id}
             \nYou can update the quiz to live using command \`/quiz-live-${quiz.data.data.quiz.id}\`.`
           );
         } catch (error) {

@@ -41,15 +41,15 @@ export const startQuizCommand = {
 
     try {
       const updatedQuiz = await axios.patch(
-        `http://localhost:3005/api/quiz/start/${quizId}?isDiscord=true&discordUserId=${interaction.user.id}`
+        `https://api.quizparty.amaan24.tech/api/quiz/start/${quizId}?isDiscord=true&discordUserId=${interaction.user.id}`
       );
 
       if (updatedQuiz.status === 200) {
         await interaction.followUp({
           content: `Quiz with ID: ${quizId} has been started.
-            dashboard link: (http://localhost:3000/dashboard/quiz/live/${quizId})
+            dashboard link: (https://quizparty.amaan24.tech/dashboard/quiz/live/${quizId})
             \n Share this link with users to join the quiz:
-            quiz link: (http://localhost:3000/quiz/start/${quizId})`,
+            quiz link: (https://quizparty.amaan24.tech/quiz/start/${quizId})`,
         });
       } else {
         await interaction.followUp({
