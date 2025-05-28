@@ -41,7 +41,7 @@ export const startQuizCommand = {
 
     try {
       const updatedQuiz = await axios.patch(
-        `https://api.quizparty.amaan24.tech/api/quiz/start/${quizId}?isDiscord=true&discordUserId=${interaction.user.id}`
+        `https://api.quizparty.amaan24.tech/api/quiz/status/start/${quizId}?isDiscord=true&discordUserId=${interaction.user.id}`
       );
 
       if (updatedQuiz.status === 200) {
