@@ -47,7 +47,7 @@ function Page() {
   console.log("Quiz ID from params:", quizId);
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<null | string>(null);
 
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -154,6 +154,11 @@ function Page() {
     if (quizId) {
       console.log("Quiz ID from params:", quizId);
       fetchQuizDetails(quizId as string);
+    }
+    if (!quizId) {
+      console.error("Quiz ID is not defined");
+      setLoading(false);
+      setError("Quiz ID is not defined");
     }
   }, [quizId]);
 
