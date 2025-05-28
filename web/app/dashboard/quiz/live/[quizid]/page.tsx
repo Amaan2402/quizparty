@@ -43,7 +43,9 @@ type Participant = {
 
 function Page() {
   console.log("Live Quiz Page Loaded");
-  const { quizId } = useParams();
+  const params = useParams();
+  console.log("Params:", params);
+  const quizId = useParams().quizId;
   console.log("Quiz ID from params:", quizId);
 
   const [loading, setLoading] = useState(true);
