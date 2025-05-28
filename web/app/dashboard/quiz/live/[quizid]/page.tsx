@@ -69,7 +69,11 @@ function Page() {
       (quiz?.status === "LIVE" || quiz?.status === "STARTED") &&
       !socketRef.current
     ) {
-      socketRef.current = io("http://localhost:3005", {
+      const socketURL =
+        process.env.NEXT_PUBLIC_PRODUCTION === "true"
+          ? "https://api.quizparty.amaan24.tech/api"
+          : "http://localhost:3005";
+      socketRef.current = io(socketURL, {
         reconnectionAttempts: 3,
         reconnectionDelay: 3000,
         withCredentials: true,

@@ -91,8 +91,12 @@ function Page() {
       setIsBanned(true);
       return;
     }
+    const socketURL =
+      process.env.NEXT_PUBLIC_PRODUCTION === "true"
+        ? "https://api.quizparty.amaan24.tech/api"
+        : "http://localhost:3005";
 
-    const socketInstance = io("http://localhost:3005", {
+    const socketInstance = io(socketURL, {
       reconnectionAttempts: 3,
       reconnectionDelay: 3000,
       withCredentials: true,
