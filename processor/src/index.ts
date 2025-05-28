@@ -1,9 +1,14 @@
-// import "dotenv/config"; // must come before importing prisma
+import { configDotenv } from "dotenv";
+configDotenv();
 
 import { prisma } from "@amaan2202/prisma-client";
 import { createClient } from "redis";
 
-const redis = createClient();
+const redis = createClient({
+  url: process.env.PRODUCTION
+    ? process.env.REDIS_URL
+    : "redis://localhost:6379",
+});
 
 const ANSWER_SUBMISSION_QUEUE = "answer-submission-queue";
 const RESULT_QUEUE = "result-queue";
