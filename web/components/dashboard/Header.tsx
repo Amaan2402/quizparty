@@ -4,13 +4,10 @@ import { useSideBarStore } from "@/store/useSideBarStore";
 import { handleLogoutUser } from "@/utils/auth";
 import { faBars, faBell } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useRouter } from "next/navigation";
 import React from "react";
 import toast from "react-hot-toast";
 
 function Header() {
-  const router = useRouter();
-
   const { handleToggleSideBar } = useSideBarStore();
 
   const handleLogout = () => {
@@ -18,7 +15,7 @@ function Header() {
     toast.promise(res, {
       success: (data) => {
         console.log("Logout successful:", data);
-        router.push("/");
+        window.location.href = "/";
         return "Logout successful!";
       },
       error: (err) => {

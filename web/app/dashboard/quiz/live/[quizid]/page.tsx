@@ -77,7 +77,6 @@ function Page() {
         reconnectionAttempts: 3,
         reconnectionDelay: 3000,
         withCredentials: true,
-        transports: ["polling"],
       });
 
       socketRef.current.emit("join-room", {
@@ -86,6 +85,7 @@ function Page() {
       });
 
       socketRef.current.on("new-participant", (data) => {
+        console.log("New participant data received:", data);
         const participant = data.data.participant;
         setParticipants((prevParticipants) => [
           ...prevParticipants,

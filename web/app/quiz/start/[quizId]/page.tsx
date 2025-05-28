@@ -100,7 +100,6 @@ function Page() {
       reconnectionAttempts: 3,
       reconnectionDelay: 3000,
       withCredentials: true,
-      transports: ["polling"],
     });
 
     socket.current = socketInstance;
@@ -209,11 +208,13 @@ function Page() {
   }
 
   // Render UI based on quiz status
-  if (quizStatus === "loading") return;
-  <div>
-    <Header reward={reward} quizId={quizId as string} />
-    <LoadingScreen />;
-  </div>;
+  if (quizStatus === "loading")
+    return (
+      <div>
+        <Header reward={reward} quizId={quizId as string} />
+        <LoadingScreen />;
+      </div>
+    );
 
   if (quizStatus === "error")
     return (
