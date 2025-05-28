@@ -18,6 +18,10 @@ router.delete("/logout", (req, res) => {
     httpOnly: true,
     sameSite: "none",
     secure: true,
+    domain:
+      process.env.NODE_ENV === "production"
+        ? ".quizparty.amaan24.tech"
+        : "localhost",
   });
   res.status(200).json({ message: "Logged out successfully" });
 });
