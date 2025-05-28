@@ -128,38 +128,30 @@ function Page() {
   }, [quiz?.status, quizId]);
 
   useEffect(() => {
+    if (!quizId) return; // Don't fetch until quizId is available
+
     const fetchQuizDetails = async (quizId: string) => {
       setLoading(true);
       setError(null);
-      console.log("Fetching quiz details for quizId:", quizId);
+
       toast.promise(getQuiz(quizId), {
         loading: "Loading quiz details...",
         success: (data) => {
-          console.log("Quiz details fetched successfully:", data);
           setQuiz(data.data);
           setParticipants([...data?.data?.Participant]);
-          setIsQuizStarted(data.data.status === "STARTED" ? true : false);
+          setIsQuizStarted(data.data.status === "STARTED");
           setLoading(false);
-          return `Quiz details loaded successfully!`;
+          return "Quiz details loaded successfully!";
         },
         error: (error) => {
-          console.log("Error fetching quiz details:", error);
-          console.error(error);
           setLoading(false);
           setError(error.message);
           return `Error loading quiz details: ${error.message}`;
         },
       });
     };
-    if (quizId) {
-      console.log("Quiz ID from params:", quizId);
-      fetchQuizDetails(quizId as string);
-    }
-    if (!quizId) {
-      console.error("Quiz ID is not defined");
-      setLoading(false);
-      setError("Quiz ID is not defined");
-    }
+
+    fetchQuizDetails(quizId as string);
   }, [quizId]);
 
   const toastIdRef = useRef<string | null>(null);
