@@ -38,7 +38,6 @@ function Auth({ type }: { type: "LOGIN" | "REGISTER" }) {
         setName("");
         setEmail("");
         setPassword("");
-        // window.location.href = "/dashboard";
         return `User logged in successfully! ${data?.message}`;
       },
       error: (err) => {

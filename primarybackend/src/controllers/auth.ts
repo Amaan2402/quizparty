@@ -53,7 +53,8 @@ export const loginUser = async (req: Request, res: Response) => {
     httpOnly: true,
     secure: true, // Set to true in production with HTTPS || false for development
     sameSite: "none", // or "none" if cross-origin AND HTTPS || lax for development
-    expires: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000),
+    domain: ".quizparty.amaan24.tech", // Set to your domain
+    expires: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
   });
 
   res.json({
