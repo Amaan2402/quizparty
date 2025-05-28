@@ -5,23 +5,27 @@ export async function middleware(req: NextRequest) {
   try {
     const path = req.nextUrl.pathname;
     const token = req.cookies.get("token");
+    const response = NextResponse.next();
 
-    const response = NextResponse.next(); // Create response object
-    response.headers.set("x-current-path", path); // Set the current path in headers
+    // ✅ Always allow access to /auth/signin if no valid token
+    if (path === "/auth/signin") {
+      if (!token) return response;
 
-    console.log("TOKEN:", token);
-    if (path === "/auth/signin" && !token) {
-      return response;
+      const isTokenValid = await verifyToken(token.value);
+      if (isTokenValid) {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
+      return response; // 👈 prevent redirect loop
     }
 
     const isTokenValid = token ? await verifyToken(token.value) : false;
 
-    if (path === "/auth/signin" && isTokenValid) {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
+    // ✅ Redirect to signin if trying to access protected page without valid token
     if (!isTokenValid) {
       return NextResponse.redirect(new URL("/auth/signin", req.url));
     }
+
+    return response;
   } catch (error) {
     console.error("Error in middleware:", error);
     return NextResponse.redirect(new URL("/auth/signin", req.url));
