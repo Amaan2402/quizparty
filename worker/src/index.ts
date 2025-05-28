@@ -1,8 +1,18 @@
+import { configDotenv } from "dotenv";
+configDotenv();
 import { prisma } from "@amaan2202/prisma-client";
 import { createClient } from "redis";
 
-const redisSubmission = createClient(); // one connection for submissions
-const redisResult = createClient(); // one connection for results
+const redisSubmission = createClient({
+  url: process.env.PRODUCTION
+    ? process.env.REDIS_URL
+    : "redis://localhost:6379",
+}); // one connection for submissions
+const redisResult = createClient({
+  url: process.env.PRODUCTION
+    ? process.env.REDIS_URL
+    : "redis://localhost:6379",
+}); // one connection for results
 
 const ANSWER_SUBMISSION_QUEUE = "answer-submission-queue";
 const RESULT_QUEUE = "result-queue";
@@ -231,6 +241,10 @@ async function popSubmissions() {
         ANSWER_SUBMISSION_QUEUE,
         0
       );
+      if (!submissionOutBox) {
+        console.log("No submission found in the queue.");
+        continue; // Skip to the next iteration if no submission is found
+      }
       const parsedSubmission = JSON.parse(submissionOutBox.element);
       await processSubmissionsQueue(parsedSubmission);
     }
@@ -244,6 +258,10 @@ async function popResultQueue() {
     while (true) {
       console.log("Waiting for result queue...");
       const resultQueueOutBox = await redisResult.brPop(RESULT_QUEUE, 0);
+      if (!resultQueueOutBox) {
+        console.log("No result found in the queue.");
+        continue; // Skip to the next iteration if no result is found
+      }
       const parsedResult = JSON.parse(resultQueueOutBox.element);
       await processResultQueue(parsedResult);
     }
