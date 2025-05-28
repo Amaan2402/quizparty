@@ -84,7 +84,7 @@ export const handleJoinRoom = async ({
     message: "Participant joined successfully",
     participant: {
       id: participant.id,
-      user: {
+      User: {
         id: participant.User.id,
         email: participant.User.email,
         name: participant.User.name,
