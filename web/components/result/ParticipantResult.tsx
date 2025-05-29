@@ -27,7 +27,7 @@ function ParticipantResult({
     (participant) => participant.userId === user?.userId
   );
   return (
-    <div className="p-10">
+    <div className="sm:p-10 p-2">
       <Header title={title} />
       <div className="flex flex-col lg:flex-row lg:gap-10 justify-between mt-5">
         <div className="lg:w-6/12">
