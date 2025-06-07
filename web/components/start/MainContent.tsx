@@ -36,14 +36,14 @@ function MainContent({
   const handleSubmitAnswer = useCallback(async () => {
     if (questionIndex > 0) {
       const answerRef = selectedOptionIndex;
+      handleSetSelectedOptionIndex(0); // Reset selected option index after submission
+      handleQuestionChange(false); // Reset question change state
       await submitAnswer({
         questionId: question.id,
         selectedOption: answerRef,
       });
-      handleSetSelectedOptionIndex(0); // Reset selected option index after submission
-      handleQuestionChange(false); // Reset question change state
     }
-  }, [questionIndex, selectedOptionIndex, question.id]);
+  }, [question, questionIndex, selectedOptionIndex]);
 
   useEffect(() => {
     if (isQuestionChanged) {

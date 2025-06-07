@@ -16,7 +16,7 @@ function Option({
       }`}
       onClick={() => handleSetSelectedOptionIndex(option.index)}
     >
-      <h1 className="text-white text-xl font-medium">{option.text}</h1>
+      <h1 className="text-white text-sm md:text-xl font-medium">{option.text}</h1>
     </div>
   );
 }

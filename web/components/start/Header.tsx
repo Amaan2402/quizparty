@@ -26,7 +26,7 @@ function Header({
   };
 
   return (
-    <div className="w-full px-3 sm:px-20 py-8 text-white flex justify-between items-center ">
+    <div className="w-full px-3 sm:px-20 py-8 text-white flex justify-between items-center sticky top-0 z-50 bg-[#1a1f4b] border-b border-[#2d359e]">
       <Link href={"/dashboard"}>
         <div>
           <h1 className="text-xl sm:text-3xl font-bold">QUIZ PARTY</h1>
