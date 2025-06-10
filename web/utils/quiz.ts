@@ -81,7 +81,6 @@ export const deleteQuiz = async (quizId: string) => {
 };
 
 export const getMyQuizzes = async (token: string) => {
-  console.log("TOKEN IN QUIZ", token);
   const response = await api.get("/quiz/my-quizzes", {
     headers: {
       Authorization: `Bearer ${token}`,

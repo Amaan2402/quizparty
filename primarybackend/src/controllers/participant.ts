@@ -58,6 +58,7 @@ export const banAndRemoveParticipant = async (req: Request, res: Response) => {
 
 export const submitAnswer = async (req: Request, res: Response) => {
   const questionId = req.params.questionId;
+  console.log("REQ RECEIVED SUBMIT ANSWER", questionId);
   const { selectedOption } = req.body;
   const user = getUser(req);
 

@@ -1,6 +1,6 @@
 {
   "name": "@amaan2202/prisma-client",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "main": "dist/client.js",
   "types": "dist/client.d.ts",
   "files": [

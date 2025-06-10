@@ -29,7 +29,7 @@ export const joinQuizdb = async ({
       throw new CustomError("Quiz has already ended", 400);
     }
 
-    if (quiz.Participant.length + 1 === quiz.maxParticipants) {
+    if (quiz.Participant.length == quiz.maxParticipants) {
       throw new CustomError("Quiz is full - maximum participants reached", 400);
     }
 
@@ -225,6 +225,7 @@ export const createAnswerDb = async ({
       });
     });
   } catch (error) {
+    console.log(error);
     if (error instanceof CustomError) {
       throw error;
     }
