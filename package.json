@@ -1,5 +1,6 @@
 {
   "dependencies": {
     "@amaan2202/prisma-client": "^1.0.6"
-  }
+  },
+  "version": "0.0.1"
 }
