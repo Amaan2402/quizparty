@@ -12,8 +12,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:hQPfuE0KYCjV4lX2@db.wvvfxomogbksrzquebvv.supabase.co:5432/postgres"
+  url      = env("DATABASE_URL")
 }
+
 
 model Answer {
   id              String        @id @default(uuid())

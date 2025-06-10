@@ -22,12 +22,6 @@ import { resultRouter } from "./router/result";
 const app = express();
 const PORT = 3005;
 
-try {
-  handleResetParticipantConnectionStatus();
-} catch (error) {
-  console.error("Error resetting participant connection status:", error);
-}
-
 //latest commit
 
 const server = createServer(app);
@@ -68,6 +62,12 @@ app.use("/api/auth/discord", discordRouter);
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World! 🌍");
 });
+
+try {
+  handleResetParticipantConnectionStatus();
+} catch (error) {
+  console.error("Error resetting participant connection status:", error);
+}
 
 app.use(
   (err: CustomError, req: Request, res: Response, next: NextFunction): void => {
