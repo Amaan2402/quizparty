@@ -404,7 +404,7 @@ export const sendResultsToParticipantsMail = async ({
     rank: p.ParticipantResult?.rank,
   }));
 
-  const resultsUrl = `http://localhost:3000/dashboard/quiz/result/${quizId}`;
+  const resultsUrl = `https://quizparty.amaan24.tech/quiz/result/${quizId}`;
 
   for (let i = 0; i < participants.length; i++) {
     const subject = `Results for quiz you participated in: ${quiz.title}`;
