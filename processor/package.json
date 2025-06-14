@@ -11,7 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@amaan2202/prisma-client": "^1.0.4",
+    "@amaan2202/prisma-client": "^1.0.9",
     "dotenv": "^16.5.0",
     "redis": "^4.7.0"
   },
