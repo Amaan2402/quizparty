@@ -276,7 +276,7 @@ export const handleRequestPasswordReset = async ({
     expiresIn: "15m",
   });
 
-  const resetUrl = `http://localhost:3000/auth/reset-password?token=${token}&id=${userDb.id}`;
+  const resetUrl = `https://quizparty.amaan24.tech/auth/reset-password?token=${token}&id=${userDb.id}`;
 
   const subject = "Password Reset Request";
   const html = `<p>Click <a href="${resetUrl}">here</a> to reset your password.
