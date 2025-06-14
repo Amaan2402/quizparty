@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useSideBarStore } from "@/store/useSideBarStore";
+import toast from "react-hot-toast";
 
 function SideBarNavItem({
   title,
@@ -19,25 +20,31 @@ function SideBarNavItem({
 }) {
   const currentPath = usePathname();
   const isActive = currentPath === redirectUrl;
+  const { handleToggleSideBar } = useSideBarStore();
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(redirectUrl);
+    handleToggleSideBar();
+  };
   return (
-    <Link href={redirectUrl}>
+    <div
+      className={`${
+        isActive ? "bg-[#373694]" : ""
+      } p-4 rounded-md text-white font-medium flex items-center`}
+      onClick={handleClick}
+    >
       <div
-        className={`${
-          isActive ? "bg-[#373694]" : ""
-        } p-4 rounded-md text-white font-medium flex items-center`}
+        style={{ width: "20px", height: "20px" }}
+        className={`${onlyIcon ? "mr-0" : "mr-4"}`}
       >
-        <div
-          style={{ width: "20px", height: "20px" }}
-          className={`${onlyIcon ? "mr-0" : "mr-4"}`}
-        >
-          <FontAwesomeIcon
-            icon={icon}
-            style={{ color: "#ffffff", width: "100%", height: "100%" }}
-          />
-        </div>
-        {onlyIcon ? null : <p>{title}</p>}
+        <FontAwesomeIcon
+          icon={icon}
+          style={{ color: "#ffffff", width: "100%", height: "100%" }}
+        />
       </div>
-    </Link>
+      {onlyIcon ? null : <p>{title}</p>}
+    </div>
   );
 }
 
