@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { usePathname, useRouter } from "next/navigation";
 import { useSideBarStore } from "@/store/useSideBarStore";
-import toast from "react-hot-toast";
 
 function SideBarNavItem({
   title,
