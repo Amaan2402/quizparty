@@ -70,7 +70,11 @@ async function processresultQueue() {
 
       for (const record of pendingRecords) {
         await redis.lPush(RESULT_QUEUE, JSON.stringify(record));
-        console.log("📥Pushed to Redis:", record.id, "RESULT QUEUE");
+        console.log(
+          "📥Pushed to Redis:",
+          record.quizResultQueueId,
+          "RESULT QUEUE"
+        );
       }
 
       await prisma.quizResultQueueOutbox.deleteMany({

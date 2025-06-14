@@ -16,6 +16,7 @@ const redisResult = createClient({
 
 const ANSWER_SUBMISSION_QUEUE = "answer-submission-queue";
 const RESULT_QUEUE = "result-queue";
+
 function generateBucket(maxScore: number) {
   let bucketCount = 0;
 
@@ -66,6 +67,7 @@ function countParticipantsInBuckets({
 
   return scoreDistribution;
 }
+
 async function processSubmissionsQueue(submission: {
   id: string;
   answerId: string;
@@ -288,7 +290,7 @@ async function startWorkers() {
 
 startWorkers()
   .then(() => {
-    console.log("Processors started successfully.");
+    console.log("workers started successfully.");
   })
   .catch((error) => {
     console.error("Error starting processors:", error);

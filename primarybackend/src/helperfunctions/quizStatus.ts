@@ -273,6 +273,9 @@ const startQuizFlow = async (quizId: string) => {
                 quizResultQueueId: resultQueue.id,
               },
             });
+
+            console.log("Quiz result queue created:", resultQueue.id);
+            console.log("Quiz result queue outbox created:", outbox.id);
           });
 
           clearInterval(questionInterval);
