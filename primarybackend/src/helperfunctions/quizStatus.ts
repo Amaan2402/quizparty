@@ -252,6 +252,26 @@ const startQuizFlow = async (quizId: string) => {
 
     const questionInterval = setInterval(
       async () => {
+        const currentQuestion =
+          quizRoom.questions[quizRoom.currentQuestionIndex - 1];
+
+        io.to(quizId).emit("new-question", {
+          question: currentQuestion,
+          totalQuestions: quizRoom.questions.length,
+          timePerQuestion: quizRoom.timePerQuestion,
+        });
+
+        quizRoom.currentQuestionIndex += 1;
+
+        await prisma.quiz.update({
+          where: {
+            id: quizId,
+          },
+          data: {
+            currentQuestionIndex: quizRoom.currentQuestionIndex,
+          },
+        });
+
         if (quizRoom.currentQuestionIndex === quizRoom.questions.length + 1) {
           await prisma.quiz.update({
             data: {
@@ -286,33 +306,6 @@ const startQuizFlow = async (quizId: string) => {
           quizRoom.currentQuestionIndex = 0;
           return;
         }
-
-        const currentQuestion =
-          quizRoom.questions[quizRoom.currentQuestionIndex - 1];
-
-        io.to(quizId).emit("new-question", {
-          question: currentQuestion,
-          totalQuestions: quizRoom.questions.length,
-          timePerQuestion: quizRoom.timePerQuestion,
-        });
-
-        console.log(
-          "Current question index:",
-          quizRoom.currentQuestionIndex,
-          "Current question:",
-          currentQuestion.questionText
-        );
-
-        quizRoom.currentQuestionIndex += 1;
-
-        await prisma.quiz.update({
-          where: {
-            id: quizId,
-          },
-          data: {
-            currentQuestionIndex: quizRoom.currentQuestionIndex,
-          },
-        });
       },
       quizRoom.timePerQuestion * 1000 + 2000
     );
