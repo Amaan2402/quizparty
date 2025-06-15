@@ -252,27 +252,11 @@ const startQuizFlow = async (quizId: string) => {
 
     const questionInterval = setInterval(
       async () => {
-        const currentQuestion =
-          quizRoom.questions[quizRoom.currentQuestionIndex - 1];
-
-        io.to(quizId).emit("new-question", {
-          question: currentQuestion,
-          totalQuestions: quizRoom.questions.length,
-          timePerQuestion: quizRoom.timePerQuestion,
-        });
-
-        quizRoom.currentQuestionIndex += 1;
-
-        await prisma.quiz.update({
-          where: {
-            id: quizId,
-          },
-          data: {
-            currentQuestionIndex: quizRoom.currentQuestionIndex,
-          },
-        });
-
         if (quizRoom.currentQuestionIndex === quizRoom.questions.length + 1) {
+          io.to(quizId).emit("quiz-completed", {
+            message: "Quiz has ended",
+            status: true,
+          });
           await prisma.quiz.update({
             data: {
               status: "ENDED",
@@ -299,13 +283,28 @@ const startQuizFlow = async (quizId: string) => {
           });
 
           clearInterval(questionInterval);
-          io.to(quizId).emit("quiz-completed", {
-            message: "Quiz has ended",
-            status: true,
-          });
           quizRoom.currentQuestionIndex = 0;
           return;
         }
+        const currentQuestion =
+          quizRoom.questions[quizRoom.currentQuestionIndex - 1];
+
+        io.to(quizId).emit("new-question", {
+          question: currentQuestion,
+          totalQuestions: quizRoom.questions.length,
+          timePerQuestion: quizRoom.timePerQuestion,
+        });
+
+        quizRoom.currentQuestionIndex += 1;
+
+        await prisma.quiz.update({
+          where: {
+            id: quizId,
+          },
+          data: {
+            currentQuestionIndex: quizRoom.currentQuestionIndex,
+          },
+        });
       },
       quizRoom.timePerQuestion * 1000 + 2000
     );
