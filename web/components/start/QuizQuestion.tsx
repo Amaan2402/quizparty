@@ -7,6 +7,7 @@ type Question = {
     index: number;
     text: string;
   }[];
+  questionIndex: number;
 };
 
 const options = [

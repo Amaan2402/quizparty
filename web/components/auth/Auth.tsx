@@ -63,7 +63,7 @@ function Auth({ type }: { type: "LOGIN" | "REGISTER" }) {
         {type === "LOGIN" ? "Log in" : "Sign up"}
       </h1>
 
-      <div className="mt-5">
+      <div className="mt-5 w-full">
         {type === "REGISTER" && (
           <input
             type="text"
@@ -81,7 +81,7 @@ function Auth({ type }: { type: "LOGIN" | "REGISTER" }) {
           className="border-none h-14 text-xl outline-none border-gray-300 rounded-md p-2 px-4 mb-4 w-full bg-[#252c80] text-gray-200 focus:ring-1 focus:ring-[#6969c6]"
         />
         <input
-          type="text"
+          type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
