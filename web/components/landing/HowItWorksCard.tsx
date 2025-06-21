@@ -10,9 +10,9 @@ function HowItWorksCard({
   matter: string;
 }) {
   return (
-    <div className="bg-[#1e1d6b] w-[47%] lg:w-[32%] min-h-[120px] max-h-[120px] p-2 lg:p-5 rounded-xl text-center">
+    <div className="bg-[#1e1d6b] w-[47%] lg:w-[32%] min-h-[120px] max-h-[120px] py-1 px-[2px] sm:py-0 sm:px-0 sm:p-2 lg:p-5 rounded-xl text-center">
       {/* <FontAwesomeIcon icon={icon} className="text-[24px]" /> */}
-      <h1 className="text-base sm:text-xl font-medium mb-1">{title}</h1>
+      <h1 className="text-sm sm:text-xl font-medium mb-1">{title}</h1>
       <p className="text-sm sm:text-base">{matter}</p>
     </div>
   );

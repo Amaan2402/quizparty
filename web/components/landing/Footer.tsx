@@ -25,7 +25,7 @@ function Footer() {
           />
         </div>
       </div>
-      <div className="flex justify-between font-light text-xs sm:text-base mt-5 w-7/12 sm:w-6/12">
+      <div className="flex justify-between font-light text-xs sm:text-base mt-5 w-9/12 sm:w-6/12">
         <p>About</p>
         <p>Features</p>
         <p>Contact Us</p>
