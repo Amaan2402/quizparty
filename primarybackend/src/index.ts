@@ -20,7 +20,7 @@ import { participantRouter } from "./router/participant";
 import { resultRouter } from "./router/result";
 
 const app = express();
-const PORT = 3005;
+const PORT = process.env.PORT || 3005;
 
 //latest commit
 
